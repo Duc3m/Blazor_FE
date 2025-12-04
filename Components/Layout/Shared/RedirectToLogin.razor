@@ -1,0 +1,10 @@
+﻿@inject NavigationManager Navigation
+
+@code {
+    protected override void OnInitialized()
+    {
+        // forceLoad: true là quan trọng khi dùng Cookie Auth
+        // để đảm bảo request mới gửi cookie lên server
+        Navigation.NavigateTo("/login", forceLoad: true);
+    }
+}

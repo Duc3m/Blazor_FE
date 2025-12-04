@@ -1,0 +1,52 @@
+﻿@page "/product"
+@inject IProductService ProductService
+
+<div class="grid grid-cols1 lg:grid-cols-5">
+    <FilterGroup />
+    @if(products == null)
+    {
+        <Progress Color="Color.Success" Class="bg-sky-50 *:bg-blue-500 " Indeterminate />
+    }
+    else
+    {
+        <div class="flex-column items-center justify-center lg:col-span-4">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-2">
+            @foreach(var product in products)
+            {
+                <ProductCard Product="@product" />
+            }
+            </div>
+
+            <DynamicPagination Count="@totalPages" Selected="@currentPage" OnPageChanged="OnPageChanged" />
+        </div>
+    }
+</div>
+
+@code {
+    public List<ProductDTO>? products;
+    public int totalPages;
+    public int pageSize = 12;
+    private int currentPage = 1;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData(1);
+    }
+
+    private async Task LoadData(int page)
+    {
+        var response = await ProductService.GetProductsPageAsync(page, pageSize);
+        if (response != null)
+        {
+            products = response.Content;
+            totalPages = response.Metadata.TotalPages;
+        }
+    }
+
+    public async Task OnPageChanged(int page)
+    {
+        currentPage = page;
+        await LoadData(page);
+    }
+
+}

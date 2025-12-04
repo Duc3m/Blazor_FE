@@ -1,0 +1,38 @@
+﻿<div class="border-b border-gray-200 py-4">
+    <h3 class="-my-3 flow-root">
+        <button type="button"
+                class="flex w-full items-center justify-between bg-white py-3 text-sm text-gray-400 hover:text-gray-500"
+                @onclick="Toggle">
+
+            <span class="font-medium text-gray-900">@Title</span>
+
+            <span class="ml-6 flex items-center">
+                <div class="transition-transform duration-200 @(_isExpanded ? "rotate-180" : "")">
+                    <Icon Name="IconName.AngleDown" />
+                </div>
+            </span>
+        </button>
+    </h3>
+
+    @if (_isExpanded)
+    {
+        <div class="pt-4 animate-fade-in-down">
+            <div class="space-y-2">
+                @ChildContent
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public string Title { get; set; } = "Bộ lọc";
+    [Parameter] public RenderFragment ChildContent { get; set; }
+
+    // Mặc định là mở (true)
+    private bool _isExpanded = true;
+
+    private void Toggle()
+    {
+        _isExpanded = !_isExpanded;
+    }
+}

@@ -1,0 +1,107 @@
+﻿@page "/login"
+@inject IAuthService AuthService
+@inject ILocalStorageService LocalStorage
+@inject AuthenticationStateProvider AuthStateProvider
+@inject NavigationManager Navigation
+@layout LoginLayout
+
+<Div Class="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+
+    <Div Margin="Margin.IsAuto" Width="Width.Is50">
+        <Heading Size="HeadingSize.Is2" 
+                 Margin="Margin.Is3.FromBottom" 
+                 TextAlignment="TextAlignment.Center">
+            Cửa hàng tạp hóa
+        </Heading>
+
+        <Card Shadow="Shadow.Default">
+            <CardBody>
+                <Form>
+                    <Field>
+                        <FieldLabel>
+                            Username
+                        </FieldLabel>
+                        <FieldBody>
+                            <TextEdit Placeholder="Username" 
+                                      Role="TextRole.Text" 
+                                      @bind-Text="@Username"/>
+                        </FieldBody>
+                    </Field>
+                    <Field>
+                        <FieldLabel>
+                            Password
+                        </FieldLabel>
+                        <FieldBody>
+                            <TextEdit Placeholder="********" 
+                                      Role="TextRole.Password" 
+                                      autocomplete="new-password"
+                                      @bind-Text="@Password"/>
+                        </FieldBody>
+                    </Field>
+                    <Field Flex="Flex.Wrap.JustifyContent.Between">
+                        <Check TValue="bool">
+                            Remember me
+                        </Check>
+                        <Anchor To="#" Class="text-blue-700">
+                            Forgot your password?
+                        </Anchor>
+                    </Field>
+                    <Field>
+                        <Button Class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded w-full flex justify-center items-center"
+                                Clicked="@OnLogin"
+                                Type="ButtonType.Button">
+                            Sign in
+                        </Button>
+                    </Field>
+                    <Field>
+                        Don’t have an account yet? <Anchor To="#" Class="text-blue-700">Sign up</Anchor>
+                    </Field>
+                </Form>
+            </CardBody>
+        </Card>
+    </Div>
+
+</Div>
+
+<Alert Color="Color.Success"
+       @bind-Visible="@IsAlertVisible">
+    <AlertMessage>Logged In Successully!</AlertMessage>
+</Alert>
+
+@code {
+    private string? Username;
+    private string? Password;
+
+    private bool IsAlertVisible = false;
+
+    public async Task OnLogin()
+    {
+        LoginRequest loginRequest = new LoginRequest
+        {
+            username = Username,
+            password = Password
+        };
+        try
+        {
+            var response = await AuthService.LoginAsync(loginRequest);
+            if(response.StatusCode == 200)
+            {
+                string token = response.Content.FirstOrDefault().Value;
+                await LocalStorage.SetItemAsync("authToken", token);
+
+                var customAuthStateProvider = (CustomAuthStateProvider)AuthStateProvider;
+                customAuthStateProvider.NotifyUserAuthentication(token);
+
+                Navigation.NavigateTo("/");
+            }
+            else
+            {
+                
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+        }
+    }
+}

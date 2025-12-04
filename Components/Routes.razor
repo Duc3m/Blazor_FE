@@ -1,0 +1,40 @@
+﻿<CascadingAuthenticationState>
+    <Router AppAssembly="typeof(Program).Assembly">
+        <Found Context="routeData">
+
+            <AuthorizeRouteView RouteData="routeData">
+
+                <NotAuthorized>
+                    @if(context.User.Identity?.IsAuthenticated == true)
+                    {
+                        <div class="alert alert-danger m-4" role="alert">
+                            <h4>Truy cập bị từ chối (403)</h4>
+                            <p>Bạn không có quyền truy cập vào tài nguyên này.</p>
+                            <a href="/" class="btn btn-secondary">Về trang chủ</a>
+                        </div>
+                    }
+                    else
+                    {
+                        <RedirectToLogin />
+                    }
+                </NotAuthorized>
+
+                <Authorizing>
+                    <div class="p-4">Đang xác thực...</div>
+                </Authorizing>
+
+            </AuthorizeRouteView>
+            <FocusOnNavigate RouteData="routeData" Selector="h1" />
+
+            @* <RouteView RouteData="routeData" DefaultLayout="typeof(Layout.MainLayout)" /> *@
+
+        </Found>
+
+        <NotFound>
+            <LayoutView>
+                <p role="alert">Sorry, there's nothing at this address.</p>
+            </LayoutView>
+        </NotFound>
+
+    </Router>
+</CascadingAuthenticationState>

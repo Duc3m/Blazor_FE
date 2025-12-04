@@ -1,0 +1,28 @@
+## Visual Studio & .NET Core Ignore ##
+.vs/
+bin/
+obj/
+[Bb]in/
+[Oo]bj/
+
+## User-specific files ##
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+## VS Code (Nếu bạn hoặc team dùng VS Code) ##
+.vscode/
+
+## System Files (File rác của hệ điều hành) ##
+Thumbs.db
+.DS_Store
+
+## Environment / Secrets (Quan trọng để bảo mật) ##
+# Bạn nên giữ appsettings.json và appsettings.Development.json
+# Nhưng nếu tự tạo file config riêng thì ignore nó
+appsettings.Local.json
+secrets.json
+
+## Logs ##
+*.log
