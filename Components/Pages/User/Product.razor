@@ -1,16 +1,17 @@
 ﻿@page "/product"
 @inject IProductService ProductService
+@inject ICategoryService CategoryService
 
-<div class="grid grid-cols1 lg:grid-cols-5">
-    <FilterGroup />
+<div class="grid grid-cols-1 lg:grid-cols-5">
+    <ProductFilter />
     @if(products == null)
     {
-        <Progress Color="Color.Success" Class="bg-sky-50 *:bg-blue-500 " Indeterminate />
+        <Progress Color="Color.Success" Class="bg-sky-50 *:bg-blue-500 lg:col-span-4" Indeterminate />
     }
     else
     {
         <div class="flex-column items-center justify-center lg:col-span-4">
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-2">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
             @foreach(var product in products)
             {
                 <ProductCard Product="@product" />
@@ -28,17 +29,33 @@
     public int pageSize = 12;
     private int currentPage = 1;
 
+    private Dictionary<int, string> categoryLookup = new Dictionary<int, string>();
+
     protected override async Task OnInitializedAsync()
     {
+        var categories = await CategoryService.GetCategoriesAsync();
+        if(categories != null)
+        {
+            categoryLookup = categories.Content.ToDictionary(c => c.CategoryId, c => c.Name);
+        }
         await LoadData(1);
     }
 
     private async Task LoadData(int page)
-    {
+    {   
         var response = await ProductService.GetProductsPageAsync(page, pageSize);
         if (response != null)
         {
             products = response.Content;
+
+            foreach(var product in products)
+            {
+                if(categoryLookup.TryGetValue(product.CategoryId, out var categoryName))
+                {
+                    product.CategoryName = categoryName;
+                }
+            }
+
             totalPages = response.Metadata.TotalPages;
         }
     }

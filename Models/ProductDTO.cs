@@ -4,7 +4,7 @@ public class ProductDTO
 {
     public int ProductId { get; set; }
     
-    public int? CategoryId { get; set; }
+    public int CategoryId { get; set; }
 
     public int? SupplierId { get; set; }
 
@@ -19,4 +19,6 @@ public class ProductDTO
     public DateTime? CreatedAt { get; set; }
 
     public string? ProductImg { get; set; }
+
+    public string CategoryName { get; set; } = "";
 }

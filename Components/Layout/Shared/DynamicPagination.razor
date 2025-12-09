@@ -1,4 +1,4 @@
-﻿<div class="flex justify-center mt-6 mb-6">
+﻿<div class="flex flex-col justify-center items-center mt-6 mb-6">
 
     <nav class="isolate inline-flex -space-x-px rounded-md shadow-sm" aria-label="Pagination">
 
@@ -35,7 +35,7 @@
         else
         {
 
-            // 1. NÚT TRANG ĐẦU (Sửa lại: Kiểm tra nếu đang chọn trang 1 thì đổi màu)
+            // 1. NÚT TRANG ĐẦU
             if (Selected == 1)
             {
                 <button type="button" class="relative z-10 inline-flex items-center bg-blue-600 px-4 py-2 text-sm font-semibold text-white focus:z-20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600">
@@ -74,7 +74,7 @@
                 <span class="relative inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 ring-1 ring-inset ring-gray-300 focus:outline-offset-0">...</span>
             }
 
-            // 4. Vòng lặp giữa (Giữ nguyên)
+            // 4. Vòng lặp giữa
             for (int i = startPage; i <= endPage; i++)
             {
                 int pageNumber = i;
@@ -99,7 +99,7 @@
                 <span class="relative inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 ring-1 ring-inset ring-gray-300 focus:outline-offset-0">...</span>
             }
 
-            // 6. NÚT TRANG CUỐI (Sửa lại: Kiểm tra nếu đang chọn trang cuối thì đổi màu)
+            // 6. NÚT TRANG CUỐI
             if (Selected == Count)
             {
                 <button type="button" class="relative z-10 inline-flex items-center bg-blue-600 px-4 py-2 text-sm font-semibold text-white focus:z-20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600">
@@ -123,12 +123,22 @@
         </button>
 
     </nav>
+
+    <div class="flex items-center gap-2 mt-4">
+        <span class="text-sm text-gray-700">Go to page:</span>
+        <input type="number" @bind-value="pageToGo" class="w-10 p-2 border-gray-300 text-xs rounded-lg no-spinner"/>
+        <button type="button"
+                class="px-4 py-2 text-xs bg-blue-500 rounded-lg text-white"
+                @onclick="() => ChangePage(pageToGo)">Go</button>
+    </div>
+    
 </div>
 
 @code {
     [Parameter] public int Count {get; set;}
     [Parameter] public int Selected { get; set; }
     [Parameter] public EventCallback<int> OnPageChanged { get; set; }
+    public int pageToGo;
 
     private async Task ChangePage(int page)
     {

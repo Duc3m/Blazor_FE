@@ -1,39 +1,38 @@
-﻿<div class="lg:col-span-1 mr-2">
-    <div class="bg-white p-4 rounded-lg border border-gray-200 shadow-sm sticky top-4">
+﻿<div class="border-b border-gray-200 py-4">
+    <h3 class="-my-3 flow-root">
+        <button type="button"
+                class="flex w-full items-center justify-between bg-white py-3 text-sm text-gray-400 hover:text-gray-500"
+                @onclick="Toggle">
 
-        <ProductFilter Title="Danh mục">
-            <label class="flex items-center gap-2 cursor-pointer">
-                <input type="checkbox" class="rounded text-blue-600 focus:ring-blue-500" />
-                <span class="text-xs text-gray-700">Đồ ăn vặt</span>
-            </label>
-            <label class="flex items-center gap-2 cursor-pointer">
-                <input type="checkbox" class="rounded text-blue-600 focus:ring-blue-500" />
-                <span class="text-xs text-gray-700">Nước giải khát</span>
-            </label>
-             <label class="flex items-center gap-2 cursor-pointer">
-                <input type="checkbox" class="rounded text-blue-600 focus:ring-blue-500" />
-                <span class="text-xs text-gray-700">Thực phẩm khô</span>
-            </label>
-        </ProductFilter>
+            <span class="font-medium text-gray-900">@Title</span>
 
-        <ProductFilter Title="Thương hiệu">
-            <label class="flex items-center gap-2 cursor-pointer">
-                <input type="checkbox" class="rounded text-blue-600 focus:ring-blue-500" />
-                <span class="text-xs text-gray-700">Coca Cola</span>
-            </label>
-            <label class="flex items-center gap-2 cursor-pointer">
-                <input type="checkbox" class="rounded text-blue-600 focus:ring-blue-500" />
-                <span class="text-xs text-gray-700">Pepsi</span>
-            </label>
-            <label class="flex items-center gap-2 cursor-pointer">
-                <input type="checkbox" class="rounded text-blue-600 focus:ring-blue-500" />
-                <span class="text-xs text-gray-700">Oishi</span>
-            </label>
-        </ProductFilter>
-
-        <button class="w-full mt-6 bg-blue-600 text-white font-semibold py-2 rounded hover:bg-blue-700 text-xs">
-            Áp dụng
+            <span class="ml-6 flex items-center">
+                <div class="transition-transform duration-200 @(_isExpanded ? "rotate-180" : "")">
+                    <Icon Name="IconName.AngleDown" />
+                </div>
+            </span>
         </button>
+    </h3>
 
-    </div>
+    @if (_isExpanded)
+    {
+        <div class="pt-4 animate-fade-in-down">
+            <div class="space-y-2">
+                @ChildContent
+            </div>
+        </div>
+    }
 </div>
+
+@code {
+    [Parameter] public string Title { get; set; } = "Bộ lọc";
+    [Parameter] public RenderFragment ChildContent { get; set; }
+
+    // Mặc định là mở (true)
+    private bool _isExpanded = true;
+
+    private void Toggle()
+    {
+        _isExpanded = !_isExpanded;
+    }
+}
