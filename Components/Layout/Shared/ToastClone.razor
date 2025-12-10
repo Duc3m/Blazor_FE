@@ -1,0 +1,100 @@
+﻿@inject IToastCloneService ToastCloneService
+@implements IDisposable
+
+<div class="fixed bottom-5 right-5 z-50 w-80 space-y-2">
+    @foreach (var toast in Enumerable.Reverse(_toasts))
+    {
+        var toastLocal = toast; // To avoid closure issues
+            <div @key="toastLocal.Id" class="@GetToastClass(toastLocal.Level)">
+                <span class="flex-grow">@toastLocal.Message</span>
+                <button @onclick="() => CloseToast(toastLocal.Id)" class="ml-4 flex-shrink-0 -mr-2 -my-2 p-2 leading-none font-bold text-xl hover:text-gray-200">&times;</button>
+            </div>
+    }
+</div>
+
+@code {
+    private List<ToastInstance> _toasts = new List<ToastInstance>();
+
+    // Helper class to hold individual toast information
+    private class ToastInstance : IDisposable
+    {
+        public Guid Id { get; } = Guid.NewGuid();
+        public string Message { get; set; } = string.Empty;
+        public ToastLevel Level { get; set; }
+        public CancellationTokenSource CancellationTokenSource { get; } = new CancellationTokenSource();
+
+        public void Dispose()
+        {
+            CancellationTokenSource.Cancel();
+            CancellationTokenSource.Dispose();
+        }
+    }
+
+    protected override void OnInitialized()
+    {
+        ToastCloneService.OnShow += ShowToast;
+    }
+
+    private void ShowToast(string message, ToastLevel level)
+    {
+        var toast = new ToastInstance
+        {
+            Message = message,
+            Level = level
+        };
+
+        _toasts.Add(toast);
+
+        // Start a timer to automatically remove the toast
+        var _ = AutoCloseToast(toast);
+
+        InvokeAsync(StateHasChanged);
+    }
+
+    private async Task AutoCloseToast(ToastInstance toast)
+    {
+        try
+        {
+            await Task.Delay(3000, toast.CancellationTokenSource.Token);
+            CloseToast(toast.Id);
+        }
+        catch (TaskCanceledException)
+        {
+            // This is expected if the toast is closed manually
+        }
+    }
+
+    private void CloseToast(Guid toastId)
+    {
+        var toast = _toasts.FirstOrDefault(t => t.Id == toastId);
+        if (toast != null)
+        {
+            toast.Dispose(); // Cancel the timer and dispose CTS
+            _toasts.Remove(toast);
+            InvokeAsync(StateHasChanged);
+        }
+    }
+
+    private string GetToastClass(ToastLevel level)
+    {
+        var levelClass = level switch
+        {
+            ToastLevel.Success => "bg-green-500",
+            ToastLevel.Error => "bg-red-500",
+            ToastLevel.Warning => "bg-yellow-500",
+            ToastLevel.Info => "bg-blue-500",
+            _ => "bg-gray-500",
+        };
+        // Base classes for all toasts
+        return $"rounded-lg p-4 text-white shadow-lg flex items-center justify-between transition-all duration-300 {levelClass}";
+    }
+
+    public void Dispose()
+    {
+        ToastCloneService.OnShow -= ShowToast;
+        foreach (var toast in _toasts)
+        {
+            toast.Dispose();
+        }
+    }
+}

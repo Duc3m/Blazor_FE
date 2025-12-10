@@ -142,10 +142,16 @@
 
     private async Task ChangePage(int page)
     {
-        if (page < 1 || page > Count || page == Selected)
+        if (page < 1 || page == Selected)
         {
             return;
         }
+        if (page > Count)
+        {
+            page = Count;
+        }
+
+        pageToGo = 0;
         await OnPageChanged.InvokeAsync(page);
     }
 

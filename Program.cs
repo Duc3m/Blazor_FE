@@ -1,6 +1,8 @@
 ﻿using Blazor_FE.Components;
 using Blazor_FE.Extensions;
 using Blazor_FE.Services.Auth;
+using Blazor_FE.Services.Cart;
+using Blazor_FE.Services.ToastClone;
 using Blazored.LocalStorage;
 using Blazorise;
 using Blazorise.Icons.FontAwesome;
@@ -26,6 +28,10 @@ builder.Services.AddServices("https://localhost:8081/");
 builder.Services.AddBlazoredLocalStorage();
 
 builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthStateProvider>();
+
+builder.Services.AddScoped<ICartService, CartService>();
+
+builder.Services.AddSingleton<IToastCloneService, ToastCloneService>();
 
 builder.Services.AddAuthentication(options =>
 {

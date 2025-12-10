@@ -1,0 +1,55 @@
+﻿@inject ICartService CartService
+@inject NavigationManager NavigationManager
+
+@if (CartItemData != null)
+{
+    <li class="py-4 flex">
+        <img src="@CartItemData.ImageUrl" alt="@CartItemData.Name" class="rounded mr-4 w-24 h-24 object-contain flex-shrink-0" />
+        <div class="flex-1 flex flex-col justify-between">
+            <div>
+                <div class="flex justify-between">
+                    <h4 class="font-semibold text-gray-900">@CartItemData.Name</h4>
+                    <p class="font-semibold text-gray-900">@Money(CartItemData.Price * CartItemData.Quantity)</p>
+                </div>
+                <p class="text-sm text-gray-500">Giá 1 món: @Money(CartItemData.Price)</p>
+            </div>
+            <div class="flex items-center justify-between mt-2">
+                <div class="inline-flex rounded-md shadow-sm isolate border border-gray-300">
+                    <button class="px-3 py-1 text-gray-700 hover:bg-gray-100" @onclick="() => UpdateQuantity(CartItemData.Quantity - 1)">-</button>
+                    <span class="px-4 py-1 bg-gray-50 text-gray-700 select-none">@CartItemData.Quantity</span>
+                    <button class="px-3 py-1 text-gray-700 hover:bg-gray-100" @onclick="() => UpdateQuantity(CartItemData.Quantity + 1)">+</button>
+                </div>
+                <button class="text-red-600 text-sm hover:underline inline-flex items-center" @onclick="RemoveItem">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M6 8a1 1 0 011 1v6a1 1 0 11-2 0V9a1 1 0 011-1zm4 0a1 1 0 011 1v6a1 1 0 11-2 0V9a1 1 0 011-1zm5-5a1 1 0 00-1-1h-3.5a1 1 0 00-.894.553L9.382 4H5a1 1 0 000 2h10a1 1 0 001-1V3z" clip-rule="evenodd" />
+                        <path d="M4 6h12l-1 11a2 2 0 01-2 2H7a2 2 0 01-2-2L4 6z" />
+                    </svg>
+                    Remove
+                </button>
+            </div>
+        </div>
+    </li>
+}
+
+@code {
+    [Parameter, EditorRequired]
+    public CartItemDTO? CartItemData { get; set; }
+
+    private async Task UpdateQuantity(int newQuantity)
+    {
+        if (CartItemData != null)
+        {
+            await CartService.UpdateQuantityAsync(CartItemData.ProductId, newQuantity);
+        }
+    }
+
+    private async Task RemoveItem()
+    {
+        if (CartItemData != null)
+        {
+            await CartService.RemoveFromCartAsync(CartItemData.ProductId);
+        }
+    }
+
+    private string Money(decimal amount) => amount.ToString("C", CultureInfo.GetCultureInfo("vi-VN"));
+}
