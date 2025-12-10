@@ -1,0 +1,71 @@
+﻿@inject IConfirmDialogService ConfirmDialogService
+@implements IDisposable
+
+@if (_isVisible)
+{
+    // Lớp phủ nền mờ
+    <div class="fixed inset-0 z-[100] flex items-center justify-center bg-black bg-opacity-50" @onclick="Cancel">
+        <div class="w-full max-w-md rounded-lg bg-white p-6 shadow-xl" @onclick:stopPropagation>
+            <h3 class="text-xl font-semibold text-gray-900">
+                Xác nhận
+            </h3>
+            <div class="mt-4">
+                <p class="text-base text-gray-600">
+                    @_message
+                </p>
+            </div>
+            <div class="mt-6 flex justify-end space-x-3">
+                <button @onclick="Cancel" class="rounded-md border border-transparent bg-red-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">
+                    No
+                </button>
+                <button @onclick="Confirm" class="inline-flex justify-center rounded-md border border-transparent bg-green-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2">
+                    Yes
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private bool _isVisible;
+    private string _message = string.Empty;
+    private Func<Task> _onConfirm = default!; // Lưu trữ hàm callback khi xác nhận
+
+    // Khi component được khởi tạo, đăng ký lắng nghe sự kiện từ service
+    protected override void OnInitialized()
+    {
+        ((IConfirmDialogService)ConfirmDialogService).OnConfirmRequested += ShowConfirm;
+    }
+
+    // Phương thức được gọi bởi service để hiển thị popup
+    private Task ShowConfirm(string message, Func<Task> onConfirm)
+    {
+        _isVisible = true;
+        _message = message;
+        _onConfirm = onConfirm; // Lưu lại hành động cần thực thi
+        return InvokeAsync(StateHasChanged); // Cập nhật UI
+    }
+
+    // Khi người dùng nhấn "Có"
+    private async Task Confirm()
+    {
+        _isVisible = false;
+        await _onConfirm.Invoke(); // Thực thi hành động đã lưu
+        await InvokeAsync(StateHasChanged);
+    }
+
+    // Khi người dùng nhấn "Không" hoặc click ra ngoài
+    private void Cancel()
+    {
+        _isVisible = false;
+        // Báo cho service biết người dùng đã hủy để hoàn thành Task<bool> với kết quả 'false'
+        ConfirmDialogService.SetResult(false);
+        InvokeAsync(StateHasChanged);
+    }
+
+    // Hủy đăng ký sự kiện khi component bị hủy để tránh rò rỉ bộ nhớ
+    public void Dispose()
+    {
+        ((IConfirmDialogService)ConfirmDialogService).OnConfirmRequested -= ShowConfirm;
+    }
+}
