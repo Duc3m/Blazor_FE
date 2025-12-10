@@ -1,4 +1,6 @@
-﻿<!DOCTYPE html>
+﻿@inject ICartService CartService
+
+<!DOCTYPE html>
 <html lang="en">
 
 <head>
@@ -47,3 +49,13 @@
 </body>
 
 </html>
+
+@code {
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await CartService.LoadCartFromStorageAsync();
+        }
+    }
+}

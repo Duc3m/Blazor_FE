@@ -3,8 +3,7 @@
 
 @if (_isVisible)
 {
-    // Lớp phủ nền mờ
-    <div class="fixed inset-0 z-[100] flex items-center justify-center bg-black bg-opacity-50" @onclick="Cancel">
+    <div class="fixed inset-0 z-[100] flex items-start pt-40 justify-center bg-black bg-opacity-50" @onclick="Cancel">
         <div class="w-full max-w-md rounded-lg bg-white p-6 shadow-xl" @onclick:stopPropagation>
             <h3 class="text-xl font-semibold text-gray-900">
                 Xác nhận
@@ -31,7 +30,7 @@
     private string _message = string.Empty;
     private Func<Task> _onConfirm = default!; // Lưu trữ hàm callback khi xác nhận
 
-    // Khi component được khởi tạo, đăng ký lắng nghe sự kiện từ service
+    // Đăng ký sự kiện từ service
     protected override void OnInitialized()
     {
         ((IConfirmDialogService)ConfirmDialogService).OnConfirmRequested += ShowConfirm;
@@ -46,7 +45,6 @@
         return InvokeAsync(StateHasChanged); // Cập nhật UI
     }
 
-    // Khi người dùng nhấn "Có"
     private async Task Confirm()
     {
         _isVisible = false;
@@ -54,10 +52,9 @@
         await InvokeAsync(StateHasChanged);
     }
 
-    // Khi người dùng nhấn "Không" hoặc click ra ngoài
     private void Cancel()
     {
-        _isVisible = false;
+        _isVisible = false; 
         // Báo cho service biết người dùng đã hủy để hoàn thành Task<bool> với kết quả 'false'
         ConfirmDialogService.SetResult(false);
         InvokeAsync(StateHasChanged);

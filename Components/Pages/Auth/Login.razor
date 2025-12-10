@@ -1,8 +1,9 @@
 ﻿@page "/login"
 @inject IAuthService AuthService
-@inject ILocalStorageService LocalStorage
 @inject AuthenticationStateProvider AuthStateProvider
 @inject NavigationManager Navigation
+@inject ILocalStorageService LocalStorage
+@using Blazor_FE.Services.Auth
 @layout LoginLayout
 
 <Div Class="min-h-screen flex items-center justify-center bg-gray-50 px-4">
@@ -87,12 +88,12 @@
             if(response.StatusCode == 200)
             {
                 string token = response.Content.FirstOrDefault().Value;
-                await LocalStorage.SetItemAsync("authToken", token);
-
+                
                 var customAuthStateProvider = (CustomAuthStateProvider)AuthStateProvider;
-                customAuthStateProvider.NotifyUserAuthentication(token);
+                // Gọi đúng phương thức có sẵn và await nó
+                await customAuthStateProvider.NotifyUserAuthentication(token);
 
-                Navigation.NavigateTo("/");
+                Navigation.NavigateTo("/product");
             }
             else
             {

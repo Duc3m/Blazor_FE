@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Components.Authorization;
 using System.Security.Claims;
 using System.IdentityModel.Tokens.Jwt;
+using Blazor_FE.Services.Cart;
 
 namespace Blazor_FE.Services.Auth;
 
@@ -9,10 +10,12 @@ public class CustomAuthStateProvider : AuthenticationStateProvider
 {
     private readonly ILocalStorageService _localStorage;
     private readonly HttpClient _httpClient;
-    public CustomAuthStateProvider(ILocalStorageService localStorage, HttpClient httpClient)
+    private readonly ICartService _cartService;
+    public CustomAuthStateProvider(ILocalStorageService localStorage, HttpClient httpClient, ICartService cartService)
     {
         _localStorage = localStorage;
         _httpClient = httpClient;
+        _cartService = cartService;
     }
     public override async Task<AuthenticationState> GetAuthenticationStateAsync()
     {
@@ -31,20 +34,40 @@ public class CustomAuthStateProvider : AuthenticationStateProvider
             return new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity()));
         }
 
-        var identity = new ClaimsIdentity(ParseClaimsFromJwt(token), "jwt", "name", "role");
+        var identity = new ClaimsIdentity(ParseClaimsFromJwt(token), "jwt", ClaimTypes.Name, ClaimTypes.Role);
         var user = new ClaimsPrincipal(identity);
-
-        //_httpClient.DefaultRequestHeaders.Authorization =
-        //    new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
 
         return new AuthenticationState(user);
     }
 
-    public void NotifyUserAuthentication(string token)
+    public async Task NotifyUserAuthentication(string token)
     {
-        var identity = new ClaimsIdentity(ParseClaimsFromJwt(token), "jwt", "name", "role");
+        // 1. Lưu token vào LocalStorage
+        await _localStorage.SetItemAsync("authToken", token);
+
+        var identity = new ClaimsIdentity(ParseClaimsFromJwt(token), "jwt", ClaimTypes.Name, ClaimTypes.Role);
         var user = new ClaimsPrincipal(identity);
 
+        // 2. Tải giỏ hàng của người dùng sau khi đăng nhập
+        await _cartService.LoadCartFromStorageAsync();
+
+        // 3. Thông báo cho toàn bộ ứng dụng về trạng thái đăng nhập mới
+        NotifyAuthenticationStateChanged(Task.FromResult(new AuthenticationState(user)));
+    }
+
+    // Thêm phương thức để xử lý đăng xuất
+    public async Task NotifyUserLogout()
+    {
+        // 1. Xóa token khỏi LocalStorage
+        await _localStorage.RemoveItemAsync("authToken");
+
+        var identity = new ClaimsIdentity();
+        var user = new ClaimsPrincipal(identity);
+
+        // 2. Tải lại giỏ hàng (lúc này sẽ là giỏ hàng của khách)
+        await _cartService.LoadCartFromStorageAsync();
+
+        // 3. Thông báo cho toàn bộ ứng dụng về trạng thái đăng xuất
         NotifyAuthenticationStateChanged(Task.FromResult(new AuthenticationState(user)));
     }
 
@@ -52,6 +75,16 @@ public class CustomAuthStateProvider : AuthenticationStateProvider
     {
         var handler = new JwtSecurityTokenHandler();
         var token = handler.ReadJwtToken(jwt);
-        return token.Claims;
+        var claims = token.Claims.ToList();
+        var subClaim = claims.FirstOrDefault(c => c.Type == "sub");
+        if (subClaim != null)
+        {
+            // Add the NameIdentifier claim if it doesn't exist, using the value from 'sub'
+            if (!claims.Any(c => c.Type == ClaimTypes.NameIdentifier))
+            {
+                claims.Add(new Claim(ClaimTypes.NameIdentifier, subClaim.Value));
+            }
+        }
+        return claims;
     }
 }
