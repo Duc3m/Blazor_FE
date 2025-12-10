@@ -15,6 +15,10 @@
             {
                 Navigation.NavigateTo("/admin");
             }
+            if (user.IsInRole("user"))
+            {
+                Navigation.NavigateTo("/product");
+            }
         }
     }
 }

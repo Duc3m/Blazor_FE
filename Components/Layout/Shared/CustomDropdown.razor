@@ -1,0 +1,35 @@
+﻿<div class="relative">
+    <button @onclick="ToggleDropdown"
+            @onfocusout="CloseDropdown"
+            class="inline-flex items-center justify-center text-white bg-blue-500 box-border border border-transparent hover:bg-brand-strong focus:ring-4 focus:ring-brand-medium shadow-xs font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none"
+            type="button">
+        Dropdown button
+        <svg class="w-4 h-4 ms-1.5 -me-0.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m19 9-7 7-7-7" /></svg>
+    </button>
+
+    <div class="@(isOpen ? "block" : "hidden") absolute z-10 bg-white border border-gray-200 rounded-lg shadow-lg w-44 mt-2">
+        <ul class="p-2 text-sm text-gray-700">
+            @ChildContent
+        </ul>
+    </div>
+</div>
+
+@code {
+    [Parameter] public RenderFragment ChildContent { get; set; }
+    // Biến trạng thái để lưu việc đóng/mở
+    private bool isOpen = false;
+
+    // Hàm đảo ngược trạng thái
+    private void ToggleDropdown()
+    {
+        isOpen = !isOpen;
+    }
+
+    // Hàm đóng dropdown khi click ra ngoài (mất focus)
+    // Cần delay nhỏ để sự kiện click vào item trong menu kịp chạy trước khi menu đóng lại
+    private async Task CloseDropdown()
+    {
+        await Task.Delay(200);
+        isOpen = false;
+    }
+}
