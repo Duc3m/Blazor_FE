@@ -3,6 +3,21 @@
 @inject ICategoryService CategoryService
 
 <div class="grid grid-cols-1 lg:grid-cols-5">
+    <div class="d-grid lg:col-span-1"></div>
+    <div class="d-grid lg:col-span-4">
+        <div>
+            <div class="items-center flex">
+                <Icon Name="IconName.Search"
+                      IconSize="IconSize.ExtraSmall"
+                      Class="absolute pl-1 text-gray-400" />
+                <input type="text " placeholder="Tìm kiếm..."
+                       class="text-sm pl-6 border-gray-350 border rounded-lg py-1 focus:border-sky-500 focus:outline focus:outline-sky-500" />
+            </div>
+
+
+        </div>
+    </div>
+
     <ProductFilter />
     @if(products == null)
     {
@@ -10,7 +25,7 @@
     }
     else
     {
-        <div class="flex-column items-center justify-center lg:col-span-4">
+        <div class="flex-column items-center justify-center lg:col-span-4 mt-4">
             <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
             @foreach(var product in products)
             {
@@ -36,7 +51,7 @@
         var categories = await CategoryService.GetCategoriesAsync();
         if(categories != null)
         {
-            categoryLookup = categories.Content.ToDictionary(c => c.CategoryId, c => c.Name);
+            categoryLookup = categories.Content.ToDictionary(c => c.CategoryId, c => c.CategoryName);
         }
         await LoadData(1);
     }

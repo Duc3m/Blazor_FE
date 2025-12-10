@@ -1,0 +1,8 @@
+﻿<li>
+    <button class="block px-4 py-2 hover:bg-gray-100 rounded" @onclick="OnClick">@ChildContent</button>
+</li>
+
+@code {
+    [Parameter] public RenderFragment ChildContent { get; set; }
+    [Parameter] public EventCallback OnClick { get; set; }
+}
