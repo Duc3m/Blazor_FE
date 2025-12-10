@@ -2,6 +2,7 @@
 using Blazor_FE.Extensions;
 using Blazor_FE.Services.Auth;
 using Blazor_FE.Services.Cart;
+using Blazor_FE.Services.ConfirmDialog;
 using Blazor_FE.Services.ToastClone;
 using Blazored.LocalStorage;
 using Blazorise;
@@ -32,6 +33,8 @@ builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthStateProvider>
 builder.Services.AddScoped<ICartService, CartService>();
 
 builder.Services.AddSingleton<IToastCloneService, ToastCloneService>();
+
+builder.Services.AddScoped<IConfirmDialogService, ConfirmDialogService>();
 
 builder.Services.AddAuthentication(options =>
 {

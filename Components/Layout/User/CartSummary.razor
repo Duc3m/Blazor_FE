@@ -1,5 +1,6 @@
 ﻿@inject ICartService CartService
 @inject NavigationManager NavigationManager
+@inject IConfirmDialogService ConfirmDialogService
 
 <div>
     <div class="rounded-lg border border-gray-200 bg-white shadow-sm">
@@ -53,10 +54,13 @@
         ItemSubtotal = cartItems.Sum(item => item.Price * item.Quantity);
     }
 
-    private void Checkout()
+    private async void Checkout()
     {
+        bool isConfirmed = await ConfirmDialogService.Show("Xác nhận chuyển đến trang thanh toán?");
         // Điều hướng đến trang thanh toán
-        NavigationManager.NavigateTo("/checkout");
+        if(isConfirmed){
+            NavigationManager.NavigateTo("/checkout");
+        }
     }
 
     private string Money(decimal amount) => amount.ToString("C", CultureInfo.GetCultureInfo("vi-VN"));
