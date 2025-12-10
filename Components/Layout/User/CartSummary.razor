@@ -1,0 +1,69 @@
+﻿@inject ICartService CartService
+@inject NavigationManager NavigationManager
+
+<div>
+    <div class="rounded-lg border border-gray-200 bg-white shadow-sm">
+        <div class="p-4 sm:p-6">
+            <h5 class="text-lg font-semibold text-gray-900">Summary</h5>
+
+            <div class="mt-4 divide-y divide-gray-200 border border-gray-200 rounded-lg">
+                <div class="flex justify-between px-4 py-3">
+                    <span class="text-gray-700">Tổng tiền</span>
+                    <span class="font-medium text-gray-900">@Money(ItemSubtotal)</span>
+                </div>
+            </div>
+
+            <button class="mt-4 w-full inline-flex items-center justify-between rounded-md bg-green-600 px-4 py-2 text-white hover:bg-green-700" @onclick="Checkout">
+                <span>Thanh toán</span>
+                <span class="font-bold">@Money(ItemSubtotal)</span>
+            </button>
+        </div>
+    </div>
+</div>
+
+@code {
+    private decimal ItemSubtotal { get; set; }
+
+    protected override void OnInitialized()
+    {
+        // Đăng ký sự kiện
+        CartService.OnCartChanged += HandleCartChanged;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        // Chỉ tải dữ liệu ở lần render đầu tiên trên client
+        if (firstRender)
+        {
+            await LoadSubtotal();
+            StateHasChanged();
+        }
+    }
+
+    private async void HandleCartChanged()
+    {
+        // Khi giỏ hàng thay đổi, tải lại tổng tiền và yêu cầu UI cập nhật
+        await LoadSubtotal();
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task LoadSubtotal()
+    {
+        var cartItems = await CartService.GetCartItemsAsync();
+        ItemSubtotal = cartItems.Sum(item => item.Price * item.Quantity);
+    }
+
+    private void Checkout()
+    {
+        // Điều hướng đến trang thanh toán
+        NavigationManager.NavigateTo("/checkout");
+    }
+
+    private string Money(decimal amount) => amount.ToString("C", CultureInfo.GetCultureInfo("vi-VN"));
+
+    // Hủy đăng ký sự kiện khi component bị hủy để tránh rò rỉ bộ nhớ
+    public void Dispose()
+    {
+        CartService.OnCartChanged -= HandleCartChanged;
+    }
+}

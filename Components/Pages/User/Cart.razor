@@ -1,3 +1,86 @@
 ﻿@page "/cart"
+@inject ICartService CartService
+@implements IDisposable
+@inject NavigationManager NavigationManager
 
-<h1> aca</h1>
+<div class="mx-auto max-w-7xl px-4 py-6">
+    <h1 class="text-3xl font-bold tracking-tight text-gray-900 mb-6">Giỏ hàng</h1>
+
+    @if (CartItems == null)
+    {
+        <p>Loading cart...</p>
+    }
+    else if (!CartItems.Any())
+    {
+        <div class="text-center py-10">
+            <p class="text-gray-500">Your cart is empty.</p>
+            <button @onclick="ReturnToShopping" class="mt-4 inline-flex items-center rounded-md bg-green-600 px-4 py-2 text-white hover:bg-green-700">
+                Continue Shopping
+            </button>
+        </div>
+    }
+    else
+    {
+        <div class="grid grid-cols-1 gap-x-12 gap-y-8 lg:grid-cols-3">
+            <!-- Danh sách các mặt hàng -->
+            <div class="lg:col-span-2">
+                <ul class="divide-y divide-gray-200 border-t border-b border-gray-200 h-[32rem] overflow-y-auto scrollbar-hidden">
+                    @foreach (var item in CartItems)
+                    {
+                        <CartItem CartItemData="item" />
+                    }
+                </ul>
+
+                <button @onclick="ReturnToShopping" class="mt-4 inline-flex items-center rounded-md bg-green-600 px-4 py-2 text-white hover:bg-green-700">
+                    Continue Shopping
+                </button>
+            </div>
+
+            <!-- Summary -->
+            <div class="lg:col-span-1">
+                <CartSummary />
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private List<CartItemDTO>? CartItems { get; set; }
+
+    protected override void OnInitialized()
+    {
+        // Chỉ đăng ký sự kiện ở đây
+        CartService.OnCartChanged += HandleCartChanged;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        // Chỉ tải dữ liệu ở lần render đầu tiên trên client
+        if (firstRender)
+        {
+            await LoadCartItems();
+            StateHasChanged(); // Yêu cầu UI cập nhật sau khi tải xong
+        }
+    }
+
+    private async void HandleCartChanged()
+    {
+        await LoadCartItems();
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task LoadCartItems()
+    {
+        CartItems = await CartService.GetCartItemsAsync();
+    }
+
+    public void Dispose()
+    {
+        CartService.OnCartChanged -= HandleCartChanged;
+    }
+
+    public void ReturnToShopping()
+    {
+        NavigationManager.NavigateTo("/product");
+    }
+}

@@ -1,4 +1,4 @@
-html, body {
+﻿html, body {
     font-family: 'Inter', sans-serif;
 }
 
@@ -67,4 +67,87 @@ h1:focus {
 
 .no-spinner {
     -moz-appearance: textfield;
+}
+
+@layer utilities {
+    /* Thanh cuộn cực nhỏ */
+    .scrollbar-thin::-webkit-scrollbar {
+        width: 4px; /* chỉnh nhỏ hơn nếu cần */
+    }
+
+    /* Track trong suốt */
+    .scrollbar-thin::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    /* Thanh kéo */
+    .scrollbar-thin::-webkit-scrollbar-thumb {
+        background: #cbd5e1; /* màu xám nhạt */
+        border-radius: 9999px; /* bo tròn */
+    }
+
+        /* Hover */
+        .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+    /* Xóa 2 mũi tên trên dưới */
+    .scrollbar-thin::-webkit-scrollbar-button {
+        display: none;
+        height: 0;
+        width: 0;
+    }
+
+    /* Firefox support */
+    .scrollbar-thin {
+        scrollbar-width: thin;
+        scrollbar-color: #cbd5e1 transparent;
+    }
+
+    .no-scrollbar-arrows::-webkit-scrollbar-button {
+        width: 0 !important;
+        height: 0 !important;
+        display: none !important;
+    }
+
+    /* Thu nhỏ scrollbar nếu muốn */
+    .scrollbar-thin::-webkit-scrollbar {
+        width: 4px;
+    }
+
+    .scrollbar-thin::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    .scrollbar-thin::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 9999px;
+    }
+
+    .no-scrollbar-arrows::-webkit-scrollbar-button:single-button {
+        display: none !important;
+    }
+
+    .no-scrollbar-arrows::-webkit-scrollbar-button:start:decrement,
+    .no-scrollbar-arrows::-webkit-scrollbar-button:end:increment {
+        display: none !important;
+    }
+
+    .no-scrollbar-arrows::-webkit-scrollbar-button,
+    .no-scrollbar-arrows::-webkit-scrollbar-button:single-button,
+    .no-scrollbar-arrows::-webkit-scrollbar-button:start:decrement,
+    .no-scrollbar-arrows::-webkit-scrollbar-button:end:increment {
+        display: none !important;
+        width: 0 !important;
+        height: 0 !important;
+    }
+
+    .scrollbar-hidden::-webkit-scrollbar {
+        display: none; /* Chrome, Edge, Safari */
+    }
+
+    .scrollbar-hidden {
+        -ms-overflow-style: none; /* IE và Edge cũ */
+        scrollbar-width: none; /* Firefox */
+    }
 }
