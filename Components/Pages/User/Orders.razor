@@ -1,0 +1,119 @@
+﻿@page "/orders"
+
+<h1 class="text-3xl font-bold text-gray-800 mb-6">Đơn hàng</h1>
+
+<div class="bg-white shadow-md rounded-lg overflow-hidden">
+    <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Đơn hàng
+                    </th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Ngày đặt
+                    </th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Tình trạng
+                    </th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Tổng tiền
+                    </th>
+                    <th scope="col" class="relative px-6 py-3">
+                        <span class="sr-only">View</span>
+                    </th>
+                </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+                @if (orders.Any())
+                {
+                    @foreach (var order in orders)
+                    {
+                        <OrderItem Order="order" />
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="5" class="px-6 py-4 text-center text-gray-500">No orders found.</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@code {
+    private List<OrderModel> orders = new();
+
+    protected override void OnInitialized()
+    {
+        orders = new List<OrderModel>
+        {
+            new OrderModel
+            {
+                ProductImageUrl = "https://media.discordapp.net/attachments/748023581031530536/1442535004235366502/1171771917443813406remix-1699442822844.png?ex=693d83ea&is=693c326a&hm=5775bc6dd8a715bbee88a53141ffd24adc521b1714c9543d2b1236b7334f4ffd&=&format=webp&quality=lossless&width=900&height=675",
+                ProductName = "Haldiram's Nagpur Aloo Bhujia",
+                ProductInfo = "400g",
+                OrderDate = new DateTime(2023, 3, 5),
+                Status = "pending",
+                Amount = 800000
+            },
+            new OrderModel
+            {
+                ProductImageUrl = "https://media.discordapp.net/attachments/748023581031530536/1442535004235366502/1171771917443813406remix-1699442822844.png?ex=693d83ea&is=693c326a&hm=5775bc6dd8a715bbee88a53141ffd24adc521b1714c9543d2b1236b7334f4ffd&=&format=webp&quality=lossless&width=900&height=675",
+                ProductName = "Nutri Choise Biscuit",
+                ProductInfo = "2 Pkt",
+                OrderDate = new DateTime(2023, 7, 9),
+                Status = "paid",
+                Amount = 45.00m
+            },
+            new OrderModel
+            {
+                ProductImageUrl = "https://media.discordapp.net/attachments/748023581031530536/1442535004235366502/1171771917443813406remix-1699442822844.png?ex=693d83ea&is=693c326a&hm=5775bc6dd8a715bbee88a53141ffd24adc521b1714c9543d2b1236b7334f4ffd&=&format=webp&quality=lossless&width=900&height=675",
+                ProductName = "Cadbury Dairy Milk 5 Star Bites",
+                ProductInfo = "202 g",
+                OrderDate = new DateTime(2023, 10, 3),
+                Status = "paid",
+                Amount = 99.00m
+            },
+            new OrderModel
+            {
+                ProductImageUrl = "https://media.discordapp.net/attachments/748023581031530536/1442535004235366502/1171771917443813406remix-1699442822844.png?ex=693d83ea&is=693c326a&hm=5775bc6dd8a715bbee88a53141ffd24adc521b1714c9543d2b1236b7334f4ffd&=&format=webp&quality=lossless&width=900&height=675",
+                ProductName = "Onion Flavour Potato",
+                ProductInfo = "100 g",
+                OrderDate = new DateTime(2023, 3, 5),
+                Status = "paid",
+                Amount = 12.00m
+            },
+            new OrderModel
+            {
+                ProductImageUrl = "https://media.discordapp.net/attachments/748023581031530536/1442535004235366502/1171771917443813406remix-1699442822844.png?ex=693d83ea&is=693c326a&hm=5775bc6dd8a715bbee88a53141ffd24adc521b1714c9543d2b1236b7334f4ffd&=&format=webp&quality=lossless&width=900&height=675",
+                ProductName = "Salted Instant Popcorn",
+                ProductInfo = "500 g",
+                OrderDate = new DateTime(2023, 7, 9),
+                Status = "canceled",
+                Amount = 6.00m
+            },
+            new OrderModel
+            {
+                ProductImageUrl = "https://via.placeholder.com/100x100.png?text=Yogurt",
+                ProductName = "Blueberry Greek Yogurt",
+                ProductInfo = "500 g",
+                OrderDate = new DateTime(2023, 10, 3),
+                Status = "paid",
+                Amount = 18.00m
+            }
+        };
+    }
+
+    public class OrderModel
+    {
+        public string ProductImageUrl { get; set; } = string.Empty;
+        public string ProductName { get; set; } = string.Empty;
+        public string ProductInfo { get; set; } = string.Empty;
+        public DateTime OrderDate { get; set; }
+        public string Status { get; set; } = string.Empty; // "pending", "paid", "canceled"
+        public decimal Amount { get; set; }
+    }
+}

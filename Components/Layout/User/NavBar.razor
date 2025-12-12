@@ -111,9 +111,13 @@
     private async Task HandleLogout()
     {
         var customProvider = (CustomAuthStateProvider)AuthStateProvider;
-        await customProvider.NotifyUserLogout();
-        isUserMenuOpen = false;
-        NavigationManager.NavigateTo("/", forceLoad: true);
+        bool isConfirmed = await ConfirmDialogService.Show("Xác nhận đăng xuất không?");
+        if (isConfirmed)
+        {
+            await customProvider.NotifyUserLogout();
+            isUserMenuOpen = false;
+            NavigationManager.NavigateTo("/", forceLoad: true);
+        }
     }
 
 }

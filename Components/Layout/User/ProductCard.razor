@@ -43,19 +43,28 @@
 
         if (isAdding) return; // Chặn spam
         isAdding = true;
-        var cartItem = new CartItemModel
+        StateHasChanged();
+
+        try
         {
-            ProductId = Product.ProductId,
-            Name = Product.ProductName,
-            Price = Product.Price,
-            ImageUrl = Product.ProductImg,
-            Quantity = 1
-        };
-        await CartService.AddToCartAsync(cartItem);
-        ToastService.ShowToast("Đã thêm sản phẩm vào giỏ!");
+            var cartItem = new CartItemModel
+            {
+                ProductId = Product.ProductId,
+                Name = Product.ProductName,
+                Price = Product.Price,
+                ImageUrl = Product.ProductImg,
+                Quantity = 1
+            };
 
-        isAdding = false;
+            await CartService.AddToCartAsync(cartItem);
+            ToastService.ShowToast("Đã thêm sản phẩm vào giỏ!");
+        }
+        finally
+        {
+            await Task.Delay(250);
+            isAdding = false;
+            StateHasChanged();
+        }
 
-        await Task.Delay(250);
     }
 }
