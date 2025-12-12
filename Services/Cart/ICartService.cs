@@ -6,8 +6,8 @@ namespace Blazor_FE.Services.Cart
     {
         /// Sự kiện được kích hoạt mỗi khi giỏ hàng thay đổi.
         event Action? OnCartChanged;
-        Task<List<CartItemDTO>> GetCartItemsAsync();
-        Task AddToCartAsync(CartItemDTO item);
+        Task<List<CartItemModel>> GetCartItemsAsync();
+        Task AddToCartAsync(CartItemModel item);
 
         Task UpdateQuantityAsync(int productId, int quantity);
         Task RemoveFromCartAsync(int productId);

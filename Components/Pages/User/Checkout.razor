@@ -1,0 +1,76 @@
+﻿@page "/checkout"
+@inject ILocalStorageService localStorage
+@inject ICartService cartService
+@inject UserContextService userContextService
+
+@if (cartItems == null)
+{
+    <p><em>Đang tải giỏ hàng...</em></p>
+}
+else if (cartItems.Count == 0)
+{
+    <h3>Giỏ hàng của bạn đang trống.</h3>
+}
+else
+{
+    @* Hiển thị danh sách sản phẩm *@
+    <div class="cart-list">
+        <span>User id: @userId</span>
+        @foreach (var item in cartItems)
+        {
+            <div class="card mb-2">
+                <div class="card-body">
+                    <h5>@item.Name</h5>
+                    <p>Số lượng: @item.Quantity</p>
+                    <p>Đơn giá: @item.Price.ToString("N0") VNĐ</p>
+                    <p><strong>Thành tiền: @item.Price.ToString("N0") VNĐ</strong></p>
+                </div>
+            </div>
+        }
+    </div>
+
+    <div class="mt-3">
+        <h4>Tổng cộng: @cartItems.Sum(x => x.Price).ToString("N0") VNĐ</h4>
+        <button class="btn btn-primary">Tiến hành thanh toán</button>
+    </div>
+}
+
+@code {
+    private int userId;
+
+    // 1. Tạo biến để lưu trữ dữ liệu
+    private List<CartItemModel>? cartItems;
+    private List<OrderItemDTO> orderItems = new List<OrderItemDTO>();
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            userId = await userContextService.GetUserIdAsync();
+            cartItems = await cartService.GetCartItemsAsync();
+            StateHasChanged();
+        }
+    }
+
+    public void CheckoutEvent()
+    {
+        if(cartItems != null && cartItems.Count > 0)
+        {
+            foreach(var item in cartItems)
+            {
+                orderItems.Add(new OrderItemDTO
+                {
+                    ProductId = item.ProductId,
+                    Quantity = item.Quantity
+                });
+            }
+        };
+
+        OrderDTO orderDTO = new OrderDTO
+        {
+            
+        };
+
+    }
+
+}

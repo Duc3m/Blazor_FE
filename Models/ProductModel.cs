@@ -1,6 +1,6 @@
 ﻿namespace Blazor_FE.Models;
 
-public class ProductDTO
+public class ProductModel
 {
     public int ProductId { get; set; }
     

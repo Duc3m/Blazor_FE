@@ -1,5 +1,7 @@
 ﻿@inject NavigationManager NavigationManager
 @inject AuthenticationStateProvider AuthStateProvider
+@inject UserContextService UserContextService
+@inject IToastCloneService ToastService
 @inject IConfirmDialogService ConfirmDialogService
 
 <div class="bg-white flex py-4 px-4 items-center justify-between">
@@ -19,37 +21,99 @@
     </div>
 
     <div class="flex gap-4">
-
+        <div class="relative">
             <Icon Name="IconName.Cart"
                   IconSize="IconSize.Large"
-                  Class="text-gray-400"
+                  Class="text-gray-400 cursor-pointer"
                   @onclick="NavigateToCart"></Icon>
+        </div>
 
-        <Icon Name="IconName.User"
-              IconStyle="IconStyle.Regular"
-              IconSize="IconSize.Large"
-              Class="text-gray-400"></Icon>
-        <button @onclick="Logout" class="rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500">
-            Logout
-        </button>
+        <div class="relative">
+            <Icon Name="IconName.User"
+                  IconStyle="IconStyle.Regular"
+                  IconSize="IconSize.Large"
+                  Class="text-gray-400 cursor-pointer"
+                  @onclick="ToggleUserMenu"></Icon>
+
+            @if (isUserMenuOpen)
+            {
+                <div class="fixed inset-0 z-40" @onclick="CloseUserMenu"></div>
+
+                <div class="absolute right-0 mt-2 w-36 bg-white rounded-md shadow-lg py-1 z-50 border border-gray-100 ring-1 ring-black ring-opacity-5">
+
+                    <AuthorizeView>
+                        <Authorized>
+                            <NavLink href="/orders" @onclick="CloseUserMenu" class="block px-4 py-2 text-sm text-gray-800 hover:bg-gray-100">
+                                <Icon Name="IconName.Receipt"
+                                      IconStyle="IconStyle.Solid"
+                                      IconSize="IconSize.Default"
+                                      Class="inline-block mr-2" />
+                                Đơn hàng
+                            </NavLink>
+
+                            <button @onclick="HandleLogout" class="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100">
+                                <Icon Name="IconName.Ban"
+                                      IconStyle="IconStyle.Solid"
+                                      IconSize="IconSize.Default"
+                                      Class="inline-block mr-1" />
+                                Đăng xuất
+                            </button>
+                        </Authorized>
+                        <NotAuthorized>
+                            <NavLink href="/login" @onclick="CloseUserMenu" class="block px-4 py-2 text-sm text-blue-700 hover:bg-gray-100">
+                                <Icon Name="IconName.IdCard"
+                                      IconStyle="IconStyle.Solid"
+                                      IconSize="IconSize.Default"
+                                      Class="inline-block mr-2" />
+                                Đăng nhập
+                            </NavLink>
+                            <NavLink href="/" @onclick="CloseUserMenu" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                <Icon Name="IconName.FileAlt"
+                                      IconStyle="IconStyle.Solid"
+                                      IconSize="IconSize.Default"
+                                      Class="inline-block mr-3" />
+                                Đăng ký
+                            </NavLink>
+                        </NotAuthorized>
+                    </AuthorizeView>
+
+                </div>
+            }
+
+        </div>
     </div>
 </div>
 
 @code {
-    public void NavigateToCart()
+    private bool isUserMenuOpen = false;
+
+    public async void NavigateToCart()
     {
+        if(await UserContextService.IsUserAuthenticatedAsync() == false)
+        {
+            ToastService.ShowToast("Vui lòng đăng nhập để xem giỏ hàng!", ToastLevel.Error);
+            return;
+        }
         NavigationManager.NavigateTo("/cart");
     }
 
-    public async void Logout()
+    private void ToggleUserMenu()
     {
-        bool isConfirmed = await ConfirmDialogService.Show("Xác nhận đăng xuất?");
-
-        if (isConfirmed)
-        {
-            var customAuthStateProvider = (CustomAuthStateProvider)AuthStateProvider;
-            await customAuthStateProvider.NotifyUserLogout();
-            NavigationManager.NavigateTo("/login");
-        }
+        isUserMenuOpen = !isUserMenuOpen;
     }
+
+    // Hàm đóng menu (khi click vào item hoặc click ra ngoài)
+    private void CloseUserMenu()
+    {
+        isUserMenuOpen = false;
+    }
+
+    private async Task HandleLogout()
+    {
+        var customProvider = (CustomAuthStateProvider)AuthStateProvider;
+        await customProvider.NotifyUserLogout();
+        isUserMenuOpen = false;
+        NavigationManager.NavigateTo("/", forceLoad: true);
+    }
+
 }

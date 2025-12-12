@@ -5,5 +5,5 @@ namespace Blazor_FE.Services.Categories;
 
 public interface ICategoryService
 {
-    public Task<APIResponse<List<CategoryDTO>>> GetCategoriesAsync();
+    public Task<APIResponse<List<CategoryModel>>> GetCategoriesAsync();
 }

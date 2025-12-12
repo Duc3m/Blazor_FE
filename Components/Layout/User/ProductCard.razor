@@ -1,5 +1,6 @@
 ﻿@inject ICartService CartService
-@inject Blazor_FE.Services.ToastClone.IToastCloneService ToastService
+@inject IToastCloneService ToastService
+@inject UserContextService UserContextService
 
 <div class="max-w-xs rounded-lg border border-gray-200 bg-white p-4 shadow-sm hover:border-blue-500 cursor-pointer transition-colors">
     <img class="mx-auto h-32 object-contain" src="@Product.ProductImg" alt="Ảnh sản phẩm" />
@@ -28,15 +29,21 @@
 </div>
 
 @code {
-    [Parameter] public ProductDTO Product { get; set; }
+    [Parameter] public ProductModel Product { get; set; }
 
     private bool isAdding = false;
 
     public async Task AddToCart()
     {
+        if(await UserContextService.IsUserAuthenticatedAsync() == false)
+        {
+            ToastService.ShowToast("Vui lòng đăng nhập để thêm sản phẩm vào giỏ!", ToastLevel.Error);
+            return;
+        }
+
         if (isAdding) return; // Chặn spam
         isAdding = true;
-        var cartItem = new CartItemDTO
+        var cartItem = new CartItemModel
         {
             ProductId = Product.ProductId,
             Name = Product.ProductName,

@@ -1,4 +1,5 @@
 ﻿@page "/cart"
+@attribute [Authorize]
 @inject ICartService CartService
 @implements IDisposable
 @inject NavigationManager NavigationManager
@@ -45,21 +46,20 @@
 </div>
 
 @code {
-    private List<CartItemDTO>? CartItems { get; set; }
+    private List<CartItemModel>? CartItems { get; set; }
 
     protected override void OnInitialized()
     {
-        // Chỉ đăng ký sự kiện ở đây
         CartService.OnCartChanged += HandleCartChanged;
+        StateHasChanged();
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        // Chỉ tải dữ liệu ở lần render đầu tiên trên client
         if (firstRender)
         {
             await LoadCartItems();
-            StateHasChanged(); // Yêu cầu UI cập nhật sau khi tải xong
+            StateHasChanged();
         }
     }
 
@@ -83,4 +83,5 @@
     {
         NavigationManager.NavigateTo("/product");
     }
+
 }

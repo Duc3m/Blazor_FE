@@ -1,6 +1,6 @@
 ﻿namespace Blazor_FE.Models;
 
-public class OrderDTO
+public class OrderModel
 {
     public int OrderId { get; set; }
 

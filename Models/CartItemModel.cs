@@ -1,6 +1,6 @@
 ﻿namespace Blazor_FE.Models
 {
-    public class CartItemDTO
+    public class CartItemModel
     {
         public int ProductId { get; set; }
         public string Name { get; set; } = string.Empty;

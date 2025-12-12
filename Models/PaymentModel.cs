@@ -1,6 +1,6 @@
 ﻿namespace Blazor_FE.Models;
 
-public class PaymentDTO
+public class PaymentModel
 {
     public int PaymentId { get; set; }
 

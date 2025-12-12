@@ -24,16 +24,24 @@ builder.Services
     .AddTailwindProviders()
     .AddFontAwesomeIcons();
 
+builder.Services.AddTransient<JwtInterceptor>();
+builder.Services.AddHttpClient("ServerApi", client =>
+{
+    client.BaseAddress = new Uri("https://localhost:8081/"); // URL API của bạn
+})
+.AddHttpMessageHandler<JwtInterceptor>();
+
+// Đăng ký HttpClient mặc định dùng cấu hình trên (tùy chọn)
+builder.Services.AddScoped(sp => sp.GetRequiredService<IHttpClientFactory>().CreateClient("ServerApi"));
+
 builder.Services.AddServices("https://localhost:8081/");
 
 builder.Services.AddBlazoredLocalStorage();
-
 builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthStateProvider>();
+builder.Services.AddScoped<UserContextService>();
 
 builder.Services.AddScoped<ICartService, CartService>();
-
 builder.Services.AddSingleton<IToastCloneService, ToastCloneService>();
-
 builder.Services.AddScoped<IConfirmDialogService, ConfirmDialogService>();
 
 builder.Services.AddAuthentication(options =>
