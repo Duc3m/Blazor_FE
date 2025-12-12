@@ -65,6 +65,17 @@ public class CustomAuthStateProvider : AuthenticationStateProvider
         var handler = new JwtSecurityTokenHandler();
         var token = handler.ReadJwtToken(jwt);
         var claims = token.Claims.ToList();
+
+        var roleClaims = claims.Where(c => c.Type == "role").ToList();
+        if (roleClaims.Any())
+        {
+            foreach (var role in roleClaims)
+            {
+                claims.Remove(role);
+                claims.Add(new Claim(ClaimTypes.Role, role.Value));
+            }
+        }
+
         var subClaim = claims.FirstOrDefault(c => c.Type == "sub");
         if (subClaim != null)
         {
@@ -73,6 +84,7 @@ public class CustomAuthStateProvider : AuthenticationStateProvider
                 claims.Add(new Claim(ClaimTypes.NameIdentifier, subClaim.Value));
             }
         }
+
         return claims;
     }
 
