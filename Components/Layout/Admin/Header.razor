@@ -1,0 +1,32 @@
+﻿@inject AuthenticationStateProvider AuthStateProvider
+@inject NavigationManager NavigationManager
+@inject AuthenticationStateProvider AuthStateProvider
+@inject IToastCloneService ToastService
+@inject IConfirmDialogService ConfirmDialogService
+
+<Bar Breakpoint="Breakpoint.Desktop"
+     ThemeContrast="ThemeContrast.None" Class="bg-gray-100" Padding="Padding.Is0">
+    <BarMenu Padding="Padding.Is0">
+        <BarStart>
+
+        </BarStart>
+        <BarEnd>
+            <BarItem>
+                <Button Clicked="HandleLogout" Class="bg-blue-500 text-white">Log out</Button>
+            </BarItem>
+        </BarEnd>
+    </BarMenu>
+</Bar>
+@code {
+    private async Task HandleLogout()
+    {
+        var customProvider = (CustomAuthStateProvider)AuthStateProvider;
+        bool isConfirmed = await ConfirmDialogService.Show("Xác nhận đăng xuất không?");
+        if (isConfirmed)
+        {
+            await customProvider.NotifyUserLogout();
+            // isUserMenuOpen = false;
+            NavigationManager.NavigateTo("/", forceLoad: true);
+        }
+    }
+}

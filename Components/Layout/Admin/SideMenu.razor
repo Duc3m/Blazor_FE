@@ -2,37 +2,25 @@
      CollapseMode="BarCollapseMode.Small"
      Breakpoint="Breakpoint.Desktop"
      NavigationBreakpoint="Breakpoint.Tablet"
-     ThemeContrast="ThemeContrast.Dark">
+     ThemeContrast="ThemeContrast.None" Class="bg-gray-100 shadow-none">
     <BarBrand>
         <BarItem>
-            <BarLink To="#">
-                <BarIcon IconName="IconName.Dashboard" />
-                Blazorise Demo
+            <BarLink To="/admin">
+                <BarIcon IconName="IconName.Home" />
+                HOME
             </BarLink>
         </BarItem>
     </BarBrand>
     <BarMenu>
         <BarStart>
             <BarItem>
-                <BarLink To="#home">
+                <BarLink To="/admin">
                     <BarIcon IconName="IconName.Dashboard" />
-                    Home
+                    Dashboard
                 </BarLink>
             </BarItem>
             <BarItem>
-                <BarLink To="#docs">Documentation</BarLink>
-            </BarItem>
-            <BarItem>
-                <BarDropdown>
-                    <BarDropdownToggle>
-                        <BarIcon IconName="IconName.Edit" />
-                        Dropdown
-                    </BarDropdownToggle>
-                    <BarDropdownMenu>
-                        <BarDropdownItem>Action</BarDropdownItem>
-                        <BarDropdownItem>Another action</BarDropdownItem>
-                    </BarDropdownMenu>
-                </BarDropdown>
+                <BarLink To="/admin/products"><BarIcon IconName="IconName.Cart" />Product  </BarLink>
             </BarItem>
         </BarStart>
     </BarMenu>
