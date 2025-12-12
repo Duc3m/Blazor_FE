@@ -1,6 +1,6 @@
 ﻿namespace Blazor_FE.Models;
 
-public class InventoryDTO
+public class InventoryModel
 {
     public int InventoryId { get; set; }
 

@@ -1,0 +1,80 @@
+﻿@page "/user-claims"
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Components.Authorization
+
+@* Inject AuthenticationStateProvider để lấy trạng thái hiện tại *@
+@inject AuthenticationStateProvider AuthStateProvider
+
+<div class="container mt-4">
+    <h3>🔍 Token Claims Debugger</h3>
+    <p class="text-muted">Danh sách các Key-Value được parse từ JWT Token hiện tại.</p>
+
+    <AuthorizeView>
+        <Authorized>
+            @* Khi người dùng đã đăng nhập *@
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <strong>Thông tin người dùng: @context.User.Identity?.Name</strong>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover mb-0">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th style="width: 40%">Claim Type (Key)</th>
+                                    <th style="width: 60%">Value</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var claim in context.User.Claims)
+                                {
+                                    <tr>
+                                        @* Sử dụng text-break để xuống dòng nếu key quá dài (như url schema) *@
+                                        <td class="text-break" style="font-family: monospace; font-size: 0.9em;">
+                                            @claim.Type
+                                        </td>
+                                        <td class="fw-bold text-primary">
+                                            @claim.Value
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="card-footer text-muted">
+                    Tổng số Claims: <strong>@context.User.Claims.Count()</strong>
+                </div>
+            </div>
+        </Authorized>
+        <NotAuthorized>
+            @* Khi chưa đăng nhập *@
+            <div class="alert alert-warning d-flex align-items-center" role="alert">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-exclamation-triangle-fill flex-shrink-0 me-2" viewBox="0 0 16 16">
+                    <path d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5zm.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2z" />
+                </svg>
+                <div>
+                    Bạn chưa đăng nhập hoặc Token không hợp lệ. Vui lòng đăng nhập để xem thông tin.
+                </div>
+            </div>
+        </NotAuthorized>
+    </AuthorizeView>
+</div>
+
+@code {
+    // Không cần code C# phức tạp vì AuthorizeView đã cung cấp context.User
+    // Tuy nhiên, nếu bạn muốn debug thêm logic C#, bạn có thể override OnInitializedAsync như sau:
+
+    /*
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        if (user.Identity.IsAuthenticated)
+        {
+            Console.WriteLine("User is authenticated via CustomAuthStateProvider");
+        }
+    }
+    */
+}

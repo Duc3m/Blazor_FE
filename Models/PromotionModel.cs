@@ -1,6 +1,6 @@
 ﻿namespace Blazor_FE.Models;
 
-public class PromotionDTO
+public class PromotionModel
 {
     public int PromoId { get; set; }
 

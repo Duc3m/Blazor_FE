@@ -5,6 +5,6 @@ namespace Blazor_FE.Services.Products;
 
 public interface IProductService
 {
-    public Task<APIResponse<List<ProductDTO>>> GetProductsAsync();
-    public Task<APIResponse<List<ProductDTO>>> GetProductsPageAsync(int page, int pageSize);
+    public Task<APIResponse<List<ProductModel>>> GetProductsAsync();
+    public Task<APIResponse<List<ProductModel>>> GetProductsPageAsync(int page, int pageSize);
 }

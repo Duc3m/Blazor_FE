@@ -1,9 +1,9 @@
 ﻿namespace Blazor_FE.Models;
 
-public class CustomerDTO
+public class SupplierModel
 {
-    public int CustomerId { get; set; }
-    public int? AccountId { get; set; }
+    public int SupplierId { get; set; }
+
     public string Name { get; set; } = null!;
 
     public string? Phone { get; set; }
@@ -11,6 +11,4 @@ public class CustomerDTO
     public string? Email { get; set; }
 
     public string? Address { get; set; }
-
-    public DateTime? CreatedAt { get; set; }
 }

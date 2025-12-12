@@ -1,6 +1,6 @@
 ﻿namespace Blazor_FE.Models;
 
-public class UserDTO
+public class UserModel
 {
     public int UserId { get; set; }
 

@@ -14,7 +14,7 @@ public class ProductService : IProductService
         _httpClient = httpClient;
     }
 
-    public async Task<APIResponse<List<ProductDTO>>> GetProductsAsync()
+    public async Task<APIResponse<List<ProductModel>>> GetProductsAsync()
     {
         try
         {
@@ -26,7 +26,7 @@ public class ProductService : IProductService
 
             var url = QueryHelpers.AddQueryString("api/v1/product", queryParams);
 
-            var response = _httpClient.GetFromJsonAsync<APIResponse<List<ProductDTO>>>(url);
+            var response = _httpClient.GetFromJsonAsync<APIResponse<List<ProductModel>>>(url);
             return await response;
         }
         catch (Exception ex) {
@@ -34,7 +34,7 @@ public class ProductService : IProductService
         }
     }
 
-    public async Task<APIResponse<List<ProductDTO>>> GetProductsPageAsync(int page, int pageSize)
+    public async Task<APIResponse<List<ProductModel>>> GetProductsPageAsync(int page, int pageSize)
     {
         try
         {
@@ -46,7 +46,7 @@ public class ProductService : IProductService
 
             var url = QueryHelpers.AddQueryString("api/v1/product", queryParams);
 
-            var response = _httpClient.GetFromJsonAsync<APIResponse<List<ProductDTO>>>(url);
+            var response = _httpClient.GetFromJsonAsync<APIResponse<List<ProductModel>>>(url);
             return await response;
         }
         catch (Exception ex)

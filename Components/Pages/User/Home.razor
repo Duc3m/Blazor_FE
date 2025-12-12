@@ -1,5 +1,4 @@
 ﻿@page "/"
-@attribute [Authorize]
 @inject NavigationManager Navigation
 @inject AuthenticationStateProvider AuthStateProvider
 
@@ -39,10 +38,7 @@
             {
                 Navigation.NavigateTo("/admin");
             }
-            if (user.IsInRole("user"))
-            {
-                Navigation.NavigateTo("/product");
-            }
+            
         }
     }
 }

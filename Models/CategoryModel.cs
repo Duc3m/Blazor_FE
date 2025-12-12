@@ -1,6 +1,6 @@
 ﻿namespace Blazor_FE.Models;
 
-public class CategoryDTO
+public class CategoryModel
 {
     public int CategoryId { get; set; }
 

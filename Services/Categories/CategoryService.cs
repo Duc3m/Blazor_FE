@@ -10,12 +10,12 @@ public class CategoryService : ICategoryService
     {
         _httpClient = httpClient;
     }
-    public async Task<APIResponse<List<CategoryDTO>>> GetCategoriesAsync()
+    public async Task<APIResponse<List<CategoryModel>>> GetCategoriesAsync()
     {
         try {
             var url = "api/v1/category";
 
-            var response =  _httpClient.GetFromJsonAsync<APIResponse<List<CategoryDTO>>>(url);
+            var response =  _httpClient.GetFromJsonAsync<APIResponse<List<CategoryModel>>>(url);
             return await response;
         }
         catch (Exception ex)
