@@ -43,7 +43,7 @@
 
                     <AuthorizeView>
                         <Authorized>
-                            <NavLink href="/orders" @onclick="CloseUserMenu" class="block px-4 py-2 text-sm text-gray-800 hover:bg-gray-100">
+                            <NavLink href="/order" @onclick="CloseUserMenu" class="block px-4 py-2 text-sm text-gray-800 hover:bg-gray-100">
                                 <Icon Name="IconName.Receipt"
                                       IconStyle="IconStyle.Solid"
                                       IconSize="IconSize.Default"
@@ -111,9 +111,13 @@
     private async Task HandleLogout()
     {
         var customProvider = (CustomAuthStateProvider)AuthStateProvider;
-        await customProvider.NotifyUserLogout();
-        isUserMenuOpen = false;
-        NavigationManager.NavigateTo("/", forceLoad: true);
+        bool isConfirmed = await ConfirmDialogService.Show("Xác nhận đăng xuất không?");
+        if (isConfirmed)
+        {
+            await customProvider.NotifyUserLogout();
+            isUserMenuOpen = false;
+            NavigationManager.NavigateTo("/", forceLoad: true);
+        }
     }
 
 }

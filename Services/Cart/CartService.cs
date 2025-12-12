@@ -75,7 +75,7 @@ public class CartService : ICartService
     public async Task RemoveFromCartAsync(int productId)
     {
         var itemToRemove = _cartCache.FirstOrDefault(cartItem => cartItem.ProductId == productId);
-        if (itemToRemove != null) return;
+        if (itemToRemove == null) return;
         _cartCache.Remove(itemToRemove);
         await SaveAndNotifyAsync();
     }
