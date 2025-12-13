@@ -1,4 +1,17 @@
 ﻿@inherits LayoutComponentBase
 
-<SideMenu />
-@Body
+<Layout Sider>
+    <LayoutSider>
+        <LayoutSiderContent>
+            <SideMenu/>
+        </LayoutSiderContent>
+    </LayoutSider>
+    <Layout>
+        <LayoutHeader Fixed>
+            <Header/>
+        </LayoutHeader>
+        <LayoutContent>
+            @Body
+        </LayoutContent>
+    </Layout>
+</Layout>
