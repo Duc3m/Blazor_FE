@@ -1,0 +1,143 @@
+﻿@page "/register"
+@inject IAuthService AuthService
+@inject NavigationManager Navigation
+@inject IToastCloneService ToastService
+@inject AuthenticationStateProvider AuthStateProvider
+@layout LoginLayout
+
+<Div Class="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+
+    <Div Margin="Margin.IsAuto" Width="Width.Is50">
+        <Heading Size="HeadingSize.Is2"
+                 Margin="Margin.Is3.FromBottom"
+                 TextAlignment="TextAlignment.Center">
+            Tạo tài khoản
+        </Heading>
+
+        <Card Shadow="Shadow.Default">
+            <CardBody>
+                <Form>
+                    <Field>
+                        <FieldLabel>
+                            Tên tài khoản
+                        </FieldLabel>
+                        <FieldBody>
+                            <TextEdit Placeholder="example"
+                                      Role="TextRole.Text"
+                                      @bind-Text="@registerModel.username" />
+                        </FieldBody>
+                    </Field>
+                    <Field>
+                        <FieldLabel>
+                            Mật khẩu
+                        </FieldLabel>
+                        <FieldBody>
+                            <TextEdit Placeholder="********"
+                                      Role="TextRole.Password"
+                                      @bind-Text="@registerModel.password" />
+                        </FieldBody>
+                    </Field>
+                    <Field>
+                        <FieldLabel>
+                            Xác nhận mật khẩu
+                        </FieldLabel>
+                        <FieldBody>
+                            <TextEdit Placeholder="********"
+                                      Role="TextRole.Password" 
+                                      @bind-Text="@confirmPassword"/>
+                        </FieldBody>
+                    </Field>
+                    <Field>
+                        <Button Class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded w-full flex justify-center items-center"
+                                Clicked="@OnRegister"
+                                Type="ButtonType.Button">
+                            Đăng ký
+                        </Button>
+                    </Field>
+                    <Field>
+                        Đã có tài khoản? <Anchor To="/login" Class="text-blue-700">Đăng nhập</Anchor>
+                    </Field>
+                </Form>
+            </CardBody>
+        </Card>
+    </Div>
+
+</Div>
+
+@code {
+    private RegisterRequest registerModel = new();
+
+    private string? confirmPassword;
+
+    private async Task OnRegister()
+    {
+        if (registerModel.username.Length < 3)
+        {
+            ToastService.ShowToast("Tên tài khoản phải từ 3 ký tự trở lên", ToastLevel.Error);
+            return;
+        }
+
+        if (string.IsNullOrEmpty(registerModel.password) || string.IsNullOrEmpty(confirmPassword))
+        {
+            ToastService.ShowToast("Mật khẩu không được để trống", ToastLevel.Error);
+            return;
+        }
+
+        if (registerModel.password != confirmPassword)
+        {
+            ToastService.ShowToast("Mật khẩu và Xác nhận mật khẩu phải giống nhau", ToastLevel.Error);
+            return;
+        }
+        
+        var registerRequest = new RegisterRequest
+        {
+            username = registerModel.username,
+            password = registerModel.password,
+        };
+
+        try
+        {
+            var registerResponse = await AuthService.RegisterAsync(registerRequest);
+
+            if (registerResponse.StatusCode == 200)
+            {
+                ToastService.ShowToast("Đăng ký thành công!", ToastLevel.Success);
+                await Task.Delay(3000);
+
+                var loginRequest = new LoginRequest
+                    {
+                        username = registerModel.username,
+                        password = registerModel.password
+                    };
+
+                var loginResponse = await AuthService.LoginAsync(loginRequest);
+
+                if (loginResponse.StatusCode == 200)
+                {
+                    string token = loginResponse.Content.FirstOrDefault().Value;
+
+                    var customAuthStateProvider = (CustomAuthStateProvider)AuthStateProvider;
+                    // Gọi đúng phương thức có sẵn và await nó
+                    await customAuthStateProvider.NotifyUserAuthentication(token);
+
+                    Navigation.NavigateTo("/");
+                }
+                else
+                {
+                    ToastService.ShowToast("Đăng nhập tự động thất bại! Vui lòng thử lại", ToastLevel.Error);
+                    Navigation.NavigateTo("/login");
+                }
+
+            }
+            else
+            {
+                ToastService.ShowToast("Đăng ký thất bại: " + registerResponse.Message, ToastLevel.Error);
+
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+        }
+    }
+}
