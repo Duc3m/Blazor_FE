@@ -1,0 +1,86 @@
+﻿<Pagination>
+    <PaginationItem Disabled="@(CurrentPage == 1)">
+        <PaginationLink Clicked="@(() => ChangePage(CurrentPage - 1))">
+            <Icon Name="IconName.AngleLeft" />
+        </PaginationLink>
+    </PaginationItem>
+
+    @foreach (var p in Pages)
+    {
+        if (p == -1)
+        {
+            <PaginationItem Disabled="true">
+                <PaginationLink>&hellip;</PaginationLink>
+            </PaginationItem>
+        }
+        else
+        {
+            var pageString = p.ToString();
+            <PaginationItem Active="(p == CurrentPage)" @key="pageString">
+                <PaginationLink Page="@pageString" Clicked="OnPageClicked">
+                    @pageString
+                </PaginationLink>
+            </PaginationItem>
+        }
+    }
+
+    <PaginationItem Disabled="@(CurrentPage == TotalPages)">
+        <PaginationLink Clicked="@(() => ChangePage(CurrentPage + 1))">
+            <Icon Name="IconName.AngleRight" />
+        </PaginationLink>
+    </PaginationItem>
+</Pagination>
+
+<div class="text-sm text-muted">
+    Page @CurrentPage / @TotalPages
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public int CurrentPage { get; set; }
+
+    [Parameter, EditorRequired]
+    public int TotalPages { get; set; }
+
+    [Parameter]
+    public EventCallback<int> OnPageChanged { get; set; }
+
+    /*** INTERNAL PAGINATION ***/
+
+    public int Delta { get; set; } = 2;
+    private IEnumerable<int> Pages => BuildPages();
+
+    private async Task ChangePage(int page)
+    {
+        if (page >= 1 && page <= TotalPages)
+            await OnPageChanged.InvokeAsync(page);
+    }
+
+    private async Task OnPageClicked(string page)
+    {
+        if (int.TryParse(page, out var p))
+            await ChangePage(p);
+    }
+
+    private IEnumerable<int> BuildPages()
+    {
+        int start = Math.Max(2, CurrentPage - Delta);
+        int end = Math.Min(TotalPages - 1, CurrentPage + Delta);
+
+        var pages = new List<int> { 1 };
+
+        if (start > 2)
+            pages.Add(-1);
+
+        for (int i = start; i <= end; i++)
+            pages.Add(i);
+
+        if (end < TotalPages - 1)
+            pages.Add(-1);
+
+        if (TotalPages > 1)
+            pages.Add(TotalPages);
+
+        return pages;
+    }
+}
