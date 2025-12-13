@@ -9,7 +9,7 @@ public class CartService : ICartService
 {
     private readonly ILocalStorageService _localStorage;
     private readonly UserContextService _userContextService;
-    private List<CartItemModel> _cartCache = new();
+    private List<CartItemModel>? _cartCache = null;
 
     public event Action? OnCartChanged;
 
@@ -28,13 +28,14 @@ public class CartService : ICartService
     public async Task LoadCartFromStorageAsync()
     {
         var storageKey = await GetCartStorageKeyAsync();
-        _cartCache = await _localStorage.SafeGetItemAsync<List<CartItemModel>>(storageKey) ?? new List<CartItemModel>();
+        _cartCache = await _localStorage.SafeGetItemAsync<List<CartItemModel>>(storageKey) 
+            ?? new List<CartItemModel>();
         OnCartChanged?.Invoke();
     }
 
     public async Task<List<CartItemModel>> GetCartItemsAsync()
     {
-        if (_cartCache.Count == 0)
+        if (_cartCache == null)
         {
             await LoadCartFromStorageAsync();
         }
@@ -43,7 +44,7 @@ public class CartService : ICartService
 
     public async Task AddToCartAsync(CartItemModel item)
     {
-        if (_cartCache.Count == 0) await LoadCartFromStorageAsync();
+        if (_cartCache == null) await LoadCartFromStorageAsync();
         var existingItem = _cartCache.FirstOrDefault(cartItem => cartItem.ProductId == item.ProductId);
         if (existingItem != null)
         {

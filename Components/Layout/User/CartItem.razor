@@ -32,7 +32,7 @@
 }
 
 @code {
-    [Parameter, EditorRequired]
+    [Parameter]
     public CartItemModel? CartItemData { get; set; }
 
     private async Task UpdateQuantity(int newQuantity)
