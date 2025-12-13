@@ -9,9 +9,9 @@
             <div>
                 <div class="flex justify-between">
                     <h4 class="font-semibold text-gray-900">@CartItemData.Name</h4>
-                    <p class="font-semibold text-gray-900">@Money(CartItemData.Price * CartItemData.Quantity)</p>
+                    <p class="font-semibold text-gray-900">@((CartItemData.Price * CartItemData.Quantity).ToVnd())</p>
                 </div>
-                <p class="text-sm text-gray-500">Giá 1 món: @Money(CartItemData.Price)</p>
+                <p class="text-sm text-gray-500">Giá 1 món: @(CartItemData.Price.ToVnd())</p>
             </div>
             <div class="flex items-center justify-between mt-2">
                 <div class="inline-flex rounded-md shadow-sm isolate border border-gray-300">
@@ -51,5 +51,4 @@
         }
     }
 
-    private string Money(decimal amount) => amount.ToString("C", CultureInfo.GetCultureInfo("vi-VN"));
 }

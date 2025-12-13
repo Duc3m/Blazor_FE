@@ -10,13 +10,13 @@
             <div class="mt-4 divide-y divide-gray-200 border border-gray-200 rounded-lg">
                 <div class="flex justify-between px-4 py-3">
                     <span class="text-gray-700">Tổng tiền</span>
-                    <span class="font-medium text-gray-900">@Money(ItemSubtotal)</span>
+                    <span class="font-medium text-gray-900">@ItemSubtotal.ToVnd()</span>
                 </div>
             </div>
 
-            <button class="mt-4 w-full inline-flex items-center justify-between rounded-md bg-green-600 px-4 py-2 text-white hover:bg-green-700" @onclick="Checkout">
+            <button class="mt-4 w-full inline-flex items-center justify-between rounded-md bg-blue-500 px-4 py-2 text-white hover:bg-blue-700" @onclick="Checkout">
                 <span>Thanh toán</span>
-                <span class="font-bold">@Money(ItemSubtotal)</span>
+                <span class="font-bold">@ItemSubtotal.ToVnd()</span>
             </button>
         </div>
     </div>
@@ -62,8 +62,6 @@
             NavigationManager.NavigateTo("/checkout");
         }
     }
-
-    private string Money(decimal amount) => amount.ToString("C", CultureInfo.GetCultureInfo("vi-VN"));
 
     // Hủy đăng ký sự kiện khi component bị hủy để tránh rò rỉ bộ nhớ
     public void Dispose()

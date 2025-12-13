@@ -1,6 +1,7 @@
 ﻿using Blazor_FE.Services.Auth;
 using Blazor_FE.Services.Products;
 using Blazor_FE.Services.Categories;
+using Blazor_FE.Services.Orders;
 
 namespace Blazor_FE.Extensions;
 
@@ -14,6 +15,7 @@ public static class ServiceCollectionExtensions
         services.AddHttpClient<IAuthService, AuthService>(configure);
         services.AddHttpClient<IProductService, ProductService>(configure);
         services.AddHttpClient<ICategoryService, CategoryService>(configure);
+        services.AddHttpClient<IOrderService, OrderService>(configure);
         return services;
     }
 }

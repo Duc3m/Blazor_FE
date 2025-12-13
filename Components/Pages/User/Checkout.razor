@@ -1,46 +1,107 @@
 ﻿@page "/checkout"
 @inject ILocalStorageService localStorage
 @inject ICartService cartService
+@inject IOrderService orderService
+@inject IToastCloneService ToastService
 @inject UserContextService userContextService
+@inject NavigationManager NavigationManager
 
-@if (cartItems == null)
-{
-    <p><em>Đang tải giỏ hàng...</em></p>
-}
-else if (cartItems.Count == 0)
-{
-    <h3>Giỏ hàng của bạn đang trống.</h3>
-}
-else
-{
-    @* Hiển thị danh sách sản phẩm *@
-    <div class="cart-list">
-        <span>User id: @userId</span>
-        @foreach (var item in cartItems)
-        {
-            <div class="card mb-2">
-                <div class="card-body">
-                    <h5>@item.Name</h5>
-                    <p>Số lượng: @item.Quantity</p>
-                    <p>Đơn giá: @item.Price.ToString("N0") VNĐ</p>
-                    <p><strong>Thành tiền: @item.Price.ToString("N0") VNĐ</strong></p>
+<div class="bg-gray-50 min-h-screen p-4 lg:p-8 font-sans text-gray-700">
+
+    <div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8">
+
+        <div class="lg:col-span-2 space-y-5">
+
+            <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-200 flex justify-between items-center">
+                <div class="flex items-center gap-3">
+                    <span class="text-blue-600">
+                        <Icon Name="IconName.MapMarker" 
+                              IconSize="IconSize.Large"/>
+                    </span>
+                    <h2 class="text-lg font-bold text-gray-800">Địa chỉ giao hàng</h2>
+                </div>
+                <button class="text-blue-600 border border-blue-600 px-4 py-1.5 rounded text-sm font-semibold hover:bg-blue-50 transition">
+                    Thêm địa chỉ mới
+                </button>
+            </div>
+
+            <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+                <div class="flex items-center gap-3 mb-6">
+                    <span class="text-gray-400">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                        </svg>
+                    </span>
+                    <h2 class="text-lg font-bold text-gray-800">Phương thức thanh toán</h2>
+                </div>
+
+                <div class="space-y-4">
+
+                    <label class="block cursor-pointer">
+                        <div class="border rounded-lg p-4 flex items-start transition-colors @(currentPayment == "vnpay" ? "border-blue-500 ring-1 ring-blue-500" : "border-gray-200 hover:bg-gray-50")">
+                            <input type="radio" name="payment" class="mt-1 mr-3 h-4 w-4 text-blue-600 focus:ring-blue-500"
+                                   checked="@(currentPayment == "vnpay")"
+                                   @onchange='() => currentPayment = "vnpay"'>
+                            <div>
+                                <span class="font-semibold text-gray-900 block">Thanh toán qua VNPAY</span>
+                                <span class="text-sm text-gray-500">
+                                    Bạn sẽ được chuyển hướng đến trang VNPAY để hoàn tất thanh toán.
+                                </span>
+                            </div>
+                        </div>
+                    </label>
+
+                    <label class="block cursor-pointer">
+                        <div class="border rounded-lg p-4 flex items-start transition-colors @(currentPayment == "cod" ? "border-blue-500 ring-1 ring-blue-500" : "border-gray-200 hover:bg-gray-50")">
+                            <input type="radio" name="payment" class="mt-1 mr-3 h-4 w-4 text-blue-600 focus:ring-blue-500"
+                                   checked="@(currentPayment == "cod")"
+                                   @onchange='() => currentPayment = "cod"'>
+                            <div>
+                                <span class="font-semibold text-gray-900 block">
+                                    Thanh toán khi nhận hàng (COD)
+                                </span>
+                                <span class="text-sm text-gray-500">
+                                    Thanh toán trực tiếp cho nhân viên giao hàng khi bạn nhận được đơn hàng.
+                                </span>
+                            </div>
+                        </div>
+                    </label>
+
                 </div>
             </div>
-        }
-    </div>
 
-    <div class="mt-3">
-        <h4>Tổng cộng: @cartItems.Sum(x => x.Price).ToString("N0") VNĐ</h4>
-        <button class="btn btn-primary">Tiến hành thanh toán</button>
+            <div class="flex justify-end gap-4 pt-4">
+                <button class="px-6 py-2.5 border border-gray-300 rounded text-gray-600 hover:bg-gray-50 font-semibold transition"
+                    @onclick="NavigateToCart">
+                    Trở lại giỏ hàng
+                </button>
+                <button class="px-6 py-2.5 bg-blue-600 text-white rounded hover:bg-blue-700 font-semibold shadow-sm transition"
+                        @onclick="CheckoutEvent">
+                    Thanh toán
+                </button>
+            </div>
+        </div>
+
+        <CheckoutOrderDetail CartItems="@cartItems" />
+
     </div>
-}
+</div>
 
 @code {
     private int userId;
+    private string currentPayment = "vnpay";
 
-    // 1. Tạo biến để lưu trữ dữ liệu
     private List<CartItemModel>? cartItems;
-    private List<OrderItemDTO> orderItems = new List<OrderItemDTO>();
+    private OrderDTO orderDTO = new OrderDTO();
+
+    protected async override void OnInitialized()
+    {
+        cartItems = await cartService.GetCartItemsAsync();
+        if(cartItems == null || cartItems.Count == 0)
+        {
+            NavigationManager.NavigateTo("/product");
+        }
+    }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -52,8 +113,22 @@ else
         }
     }
 
-    public void CheckoutEvent()
+    public void NavigateToCart()
     {
+        NavigationManager.NavigateTo("/cart");
+    }
+
+    public async Task CheckoutEvent()
+    {
+        if(currentPayment == "vnpay")
+        {
+            await VNPayCheckout();
+        }
+    }
+
+    public async Task VNPayCheckout()
+    {
+        List<OrderItemDTO> orderItems = new List<OrderItemDTO>();
         if(cartItems != null && cartItems.Count > 0)
         {
             foreach(var item in cartItems)
@@ -65,12 +140,26 @@ else
                 });
             }
         };
-
         OrderDTO orderDTO = new OrderDTO
         {
-            
+            UserId = userId,
+            CustomerId = userId,
+            PaymentMethod = "bank_transfer",
+            Items = orderItems
         };
 
+        APIResponse<CheckoutResponse> response = 
+            await orderService.PlaceOrderAsync<APIResponse<CheckoutResponse>>(orderDTO);
+
+        if (response != null && response.StatusCode == 200)
+        {
+            NavigationManager.NavigateTo(response.Content.PaymentUrl);
+            await cartService.ClearCartAsync();
+        }
+        else
+        {
+            ToastService.ShowToast("Đã có lỗi xảy ra trong quá trình thanh toán!", ToastLevel.Error);
+        }
     }
 
 }

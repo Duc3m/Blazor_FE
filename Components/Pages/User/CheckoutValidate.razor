@@ -1,0 +1,27 @@
+﻿@page "/checkout-validate"
+@inject NavigationManager NavigationManager
+
+@code{
+    [SupplyParameterFromQuery(Name = "vnp_ResponseCode")]
+    public string? VnpResponseCode { get; set; }
+
+    protected override void OnInitialized()
+    {
+        if (VnpResponseCode == null)
+        {
+            NavigationManager.NavigateTo("/");
+        }
+    }
+
+    protected override void OnParametersSet()
+    {
+        if (VnpResponseCode == "00")
+        {
+            NavigationManager.NavigateTo($"/checkout-success?responseCode={VnpResponseCode}");
+        }
+        else
+        {
+            NavigationManager.NavigateTo("/checkout-failure");
+        }
+    }
+}
