@@ -3,7 +3,7 @@
 public class APIResponse<T>
 {
     public T? Content { get; set;}
-    public Metadata Metadata { get; set; }
+    public Metadata? Metadata { get; set; }
     public int StatusCode { get; set; }
     public String Message { get; set; }
 }
