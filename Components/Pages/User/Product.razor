@@ -29,7 +29,7 @@
             <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
             @foreach(var product in products)
             {
-                <ProductCard Product="@product" />
+                <ProductCard Product="@product" ClickEvent="OnProductClicked"/>
             }
             </div>
 
@@ -38,11 +38,22 @@
     }
 </div>
 
+<Modal @ref="modalRef"
+       CloseOnBackdrop="true">
+    <ModalContent Centered
+                  Size="ModalSize.Large">
+        <ProductDetail @bind-productModel="productModel"
+                       OnCloseRequest="@(()=>HideModal())"/>
+    </ModalContent>
+</Modal>
+
 @code {
     public List<ProductModel>? products;
     public int totalPages;
     public int pageSize = 12;
     private int currentPage = 1;
+    private ProductModel productModel = new ProductModel();
+    private Modal modalRef;
 
     private Dictionary<int, string> categoryLookup = new Dictionary<int, string>();
 
@@ -79,6 +90,22 @@
     {
         currentPage = page;
         await LoadData(page);
+    }
+
+    public async Task OnProductClicked(ProductModel product)
+    {
+        productModel = product;
+        ShowModal();
+    }
+
+    private Task ShowModal()
+    {
+        return modalRef.Show();
+    }
+
+    private Task HideModal()
+    {
+        return modalRef.Hide();
     }
 
 }

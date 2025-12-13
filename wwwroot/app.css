@@ -151,3 +151,8 @@ h1:focus {
         scrollbar-width: none; /* Firefox */
     }
 }
+
+body.modal-open {
+    padding-right: 0 !important;
+    overflow-y: auto !important; /* Giữ thanh cuộn luôn hiện (tùy chọn) */
+}
