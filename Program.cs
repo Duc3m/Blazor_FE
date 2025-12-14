@@ -3,6 +3,7 @@ using Blazor_FE.Extensions;
 using Blazor_FE.Services.Auth;
 using Blazor_FE.Services.Cart;
 using Blazor_FE.Services.ConfirmDialog;
+using Blazor_FE.Services.Orders;
 using Blazor_FE.Services.ToastClone;
 using Blazored.LocalStorage;
 using Blazorise;
@@ -88,7 +89,7 @@ app.UseRequestLocalization(new RequestLocalizationOptions
     SupportedCultures = supportedCultures,
     SupportedUICultures = supportedCultures
 });
-app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true);
+app.UseStatusCodePagesWithReExecute("/not-found");
 app.UseHttpsRedirection();
 
 app.UseAntiforgery();
