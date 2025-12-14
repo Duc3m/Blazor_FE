@@ -1,15 +1,19 @@
 ﻿using Microsoft.AspNetCore.Components.Authorization;
 using System.Security.Claims;
+using Blazor_FE.Models;
+using Blazor_FE.Services.Base;
 
 namespace Blazor_FE.Services.Auth;
 
-public class UserContextService
+public class UserContextService : IUserContextService
 {
     private readonly AuthenticationStateProvider _authStateProvider;
+    private readonly HttpClient _httpClient;
 
-    public UserContextService(AuthenticationStateProvider authStateProvider)
+    public UserContextService(AuthenticationStateProvider authStateProvider, HttpClient httpClient)
     {
         _authStateProvider = authStateProvider;
+        _httpClient = httpClient;
     }
 
     public async Task<ClaimsPrincipal> GetCurrentUserAsync()
@@ -36,5 +40,13 @@ public class UserContextService
             }
         }
         return 0;
+    }
+
+    public async Task<CustomerModel> GetCustomerByUserIdAsync() 
+    {
+        int userId = await GetUserIdAsync();
+        var url = $"api/v1/Customer/user/{userId}";
+        var response = await _httpClient.GetFromJsonAsync<APIResponse<CustomerModel>>(url);
+        return response.Content;
     }
 }

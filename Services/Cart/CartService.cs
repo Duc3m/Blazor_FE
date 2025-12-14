@@ -8,12 +8,12 @@ namespace Blazor_FE.Services.Cart;
 public class CartService : ICartService
 {
     private readonly ILocalStorageService _localStorage;
-    private readonly UserContextService _userContextService;
+    private readonly IUserContextService _userContextService;
     private List<CartItemModel>? _cartCache = null;
 
     public event Action? OnCartChanged;
 
-    public CartService(ILocalStorageService localStorage, UserContextService userContextService)
+    public CartService(ILocalStorageService localStorage, IUserContextService userContextService)
     {
         _localStorage = localStorage;
         _userContextService = userContextService;
