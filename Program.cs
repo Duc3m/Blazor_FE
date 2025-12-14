@@ -40,7 +40,7 @@ builder.Services.AddServices("https://localhost:8081/");
 
 builder.Services.AddBlazoredLocalStorage();
 builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthStateProvider>();
-builder.Services.AddScoped<UserContextService>();
+//builder.Services.AddScoped<UserContextService>();
 
 builder.Services.AddScoped<ICartService, CartService>();
 builder.Services.AddSingleton<IToastCloneService, ToastCloneService>();
