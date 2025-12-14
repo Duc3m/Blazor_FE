@@ -19,6 +19,16 @@
                 <Form>
                     <Field>
                         <FieldLabel>
+                            Họ tên của bạn
+                        </FieldLabel>
+                        <FieldBody>
+                            <TextEdit Placeholder="example"
+                                      Role="TextRole.Text"
+                                      @bind-Text="@registerModel.name" />
+                        </FieldBody>
+                    </Field>
+                    <Field>
+                        <FieldLabel>
                             Tên tài khoản
                         </FieldLabel>
                         <FieldBody>
@@ -71,6 +81,12 @@
 
     private async Task OnRegister()
     {
+        if(registerModel.name.Length < 3)
+        {
+            ToastService.ShowToast("Họ tên phải từ 3 ký tự trở lên", ToastLevel.Error);
+            return;
+        }
+
         if (registerModel.username.Length < 3)
         {
             ToastService.ShowToast("Tên tài khoản phải từ 3 ký tự trở lên", ToastLevel.Error);
@@ -91,6 +107,7 @@
         
         var registerRequest = new RegisterRequest
         {
+            name = registerModel.name,
             username = registerModel.username,
             password = registerModel.password,
         };
@@ -102,7 +119,7 @@
             if (registerResponse.StatusCode == 200)
             {
                 ToastService.ShowToast("Đăng ký thành công!", ToastLevel.Success);
-                await Task.Delay(3000);
+                await Task.Delay(500);
 
                 var loginRequest = new LoginRequest
                     {
