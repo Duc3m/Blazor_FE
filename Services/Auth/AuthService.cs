@@ -43,7 +43,7 @@ public class AuthService : IAuthService
     {
         try
         {
-            var response = await _httpClient.PostAsJsonAsync("api/v1/register", model);
+            var response = await _httpClient.PostAsJsonAsync("api/v1/user-register", model);
             if (!response.IsSuccessStatusCode)
             {
                 var errorContent = await response.Content.ReadAsStringAsync();
