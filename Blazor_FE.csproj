@@ -19,6 +19,7 @@
 
   <ItemGroup>
     <Folder Include="Components\Pages\Admin\Products\" />
+    <Folder Include="Core\" />
   </ItemGroup>
 
 </Project>
