@@ -3,7 +3,7 @@
 @using Blazor_FE.Services.Base
 @using Blazor_FE.Services.Products.dtos
 @using ProductDTO = Blazor_FE.Models.ProductModel
-@using Microsoft.CodeAnalysis
+@* @using Microsoft.CodeAnalysis *@
 @using Blazorise.DataGrid
 @inject IProductService ProductService
 @attribute [Authorize(Roles = "admin")]
@@ -24,8 +24,7 @@
         PageSize="@pageSize"
         Sortable
         Responsive
-        UseInternalEditing="false"
-        @CurrentPage="currentPage">
+        UseInternalEditing="false">
         <DataGridColumns>
             @* ACTIONS *@
             <DataGridColumn Field="@nameof(ProductDTO.ProductId)" Caption="ID" Editable="false"></DataGridColumn>
@@ -121,7 +120,7 @@
                             />
                         </Field>
                         <Field>
-                            <FieldLabel>IMAGE</FieldLabel>
+                            <FieldLabel>Image</FieldLabel>
                             <InputFile
                                 OnChange="OnImageChanged" 
                                 accept="image/*"
@@ -129,7 +128,7 @@
                             <div class="mt-2">
                                 <img
                                     class=""
-                                    src="@imagePreviews.FirstOrDefault()"/>
+                                    src="@newProduct.ProductImg"/>
                             </div>
                         </Field>
                         <Footer class="flex justify-end space-x-2 p-4">
@@ -172,9 +171,9 @@
                             <FieldLabel>Image</FieldLabel>
                             @if (!string.IsNullOrEmpty(editProduct?.ProductImg))
                             {
-                            <div class="mt-2">
-                                <img src="@imagePreviews.FirstOrDefault()" alt="image" style="max-width: 200px; max-height: 200px;" class="mt-2" />
-                            </div>
+                                <div class="mt-2">
+                                    <img src="@imagePreviews.FirstOrDefault()" alt="image" style="max-width: 200px; max-height: 200px;" class="mt-2" />
+                                </div>
                             }
                         </Field>
                         <Footer class="flex justify-end space-x-2 p-4">
