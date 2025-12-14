@@ -14,15 +14,25 @@ public class JwtInterceptor : DelegatingHandler
 
     protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
     {
-        // 1. Lấy token từ LocalStorage
-        var token = await _localStorage.GetItemAsync<string>("authToken");
-
-        // 2. Nếu có token, gắn vào Header Authorization
-        if (!string.IsNullOrEmpty(token))
+        try
         {
-            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
-        }
+            // 1. Lấy token từ LocalStorage
+            var token = await _localStorage.GetItemAsync<string>("authToken");
 
+            // 2. Nếu có token, gắn vào Header Authorization
+            if (!string.IsNullOrEmpty(token))
+            {
+                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            }
+        }
+        catch (InvalidOperationException)
+        { 
+
+        }
+        catch (Exception)
+        {
+            // Bắt các lỗi khác nếu có để app không bị crash
+        }
         // 3. Gửi request đi
         return await base.SendAsync(request, cancellationToken);
     }

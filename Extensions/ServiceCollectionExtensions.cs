@@ -18,6 +18,7 @@ public static class ServiceCollectionExtensions
         services.AddHttpClient<ICategoryService, CategoryService>(configure);   
         services.AddHttpClient<IOrderService, OrderService>(configure);
         services.AddHttpClient<IUserService, UserService>(configure);
+        services.AddHttpClient<IUserContextService, UserContextService>(configure);
         return services;
     }
 }

@@ -1,50 +1,97 @@
 ﻿@inject ICategoryService CategoryService
 
 <div class="lg:col-span-1 mr-2">
-    <div class="bg-white p-4 rounded-lg border border-gray-200 shadow-sm sticky top-4">
+    <div class="bg-white mt-4 p-4 rounded-lg border border-gray-200 shadow-sm sticky top-4">
+
+        <div class="items-center flex relative mb-4">
+            <Icon Name="IconName.Search"
+                  IconSize="IconSize.ExtraSmall"
+                  Class="absolute left-3 text-gray-400 pointer-events-none" />
+            <input type="text" placeholder="Tìm kiếm..."
+                   class="w-full text-sm pl-7 pr-4 border-gray-300 border rounded-md py-2 focus:border-sky-500 focus:ring-1 focus:ring-sky-500 focus:outline-none transition duration-150 ease-in-out"
+                   @bind-value="@searchTerm"
+            />
+        </div>
 
         <FilterGroup Title="Danh mục">
-            @if(categories != null)
+            @if (categorySelections != null)
             {
-                foreach(var category in categories)
+                foreach (var item in categorySelections)
                 {
                     <label class="flex items-center gap-2 cursor-pointer">
-                        <input type="checkbox" class="rounded text-blue-600 focus:ring-blue-500" />
-                        <span class="text-xs text-gray-700">@category.CategoryName</span>
+                        <input type="checkbox"
+                               @bind="item.IsSelected"
+                               class="rounded text-blue-600 focus:ring-blue-500" />
+                        <span class="text-xs text-gray-700">@item.Category.CategoryName</span>
                     </label>
                 }
             }
         </FilterGroup>
-
-        <button class="w-full mt-6 bg-blue-600 text-white font-semibold py-2 rounded hover:bg-blue-700 text-xs"
-                @onclick="ShowAlert">
-            Áp dụng
-        </button>
-
-        <Alert Class="text-green-700"
-               @bind-Visible="visible">
-            <AlertMessage>Well done!</AlertMessage>
-            <AlertDescription>You successfully read this important alert message.</AlertDescription>
-        </Alert>
+        <div class="flex gap-2">
+            <button class="w-full mt-6 bg-blue-600 text-white font-semibold py-2 rounded hover:bg-blue-700 text-xs"
+                    @onclick="ApplyFilter">
+                Áp dụng
+            </button>
+            <button class="w-full mt-6 bg-white border-gray-400 border font-semibold py-2 rounded hover:bg-gray-200 text-xs"
+                    @onclick="ResetFilter">
+                Đặt lại
+            </button>
+        </div>
     </div>
 </div>
 
 @code {
-    [Parameter] public EventCallback<List<String>> OnFilterApply { get; set; }
+    [Parameter] public EventCallback<ProductFilterRequest> OnFilterApply { get; set; }
+    [Parameter] public EventCallback OnResetFilter { get; set; }
 
+    private List<CategorySelection> categorySelections = new();
     private List<CategoryModel>? categories;
-    private bool visible = false;
+    private string searchTerm = string.Empty;
 
     protected override async Task OnInitializedAsync()
     {
         var response = await CategoryService.GetCategoriesAsync();
-        categories = response?.Content;
+        if (response?.Content != null)
+        {
+            categorySelections = response.Content
+                .Select(c => new CategorySelection
+                {
+                    Category = c,
+                    IsSelected = false
+                })
+                .ToList();
+        }
     }
 
-    public async Task ShowAlert()
+    public async Task ApplyFilter()
     {
-        visible = true;
-        await Task.Delay(3000);
-        visible = false;
+        var selectedCategoryIds = categorySelections
+            .Where(x => x.IsSelected)
+            .Select(x => x.Category.CategoryId)
+            .ToList();
+
+        ProductFilterRequest filterRequest = new ProductFilterRequest
+        {
+            CategoryIds = selectedCategoryIds,
+            SearchTerm = searchTerm ?? null
+        };
+        await OnFilterApply.InvokeAsync(filterRequest);
     }
+
+    public async Task ResetFilter()
+    {
+        foreach(var item in categorySelections)
+        {
+            item.IsSelected = false;
+        }
+        searchTerm = string.Empty;
+        await OnResetFilter.InvokeAsync();
+    }
+
+    public class CategorySelection
+    {
+        public CategoryModel Category { get; set; }
+        public bool IsSelected { get; set; }
+    }
+
 }
