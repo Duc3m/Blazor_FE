@@ -3,7 +3,6 @@ using Blazor_FE.Extensions;
 using Blazor_FE.Services.Auth;
 using Blazor_FE.Services.Cart;
 using Blazor_FE.Services.ConfirmDialog;
-using Blazor_FE.Services.Orders;
 using Blazor_FE.Services.ToastClone;
 using Blazored.LocalStorage;
 using Blazorise;
@@ -30,18 +29,16 @@ builder.Services
 builder.Services.AddTransient<JwtInterceptor>();
 builder.Services.AddHttpClient("ServerApi", client =>
 {
-    client.BaseAddress = new Uri("https://localhost:8081/"); // URL API của bạn
+    client.BaseAddress = new Uri("https://localhost:8081/");
 })
 .AddHttpMessageHandler<JwtInterceptor>();
 
-// Đăng ký HttpClient mặc định dùng cấu hình trên (tùy chọn)
 builder.Services.AddScoped(sp => sp.GetRequiredService<IHttpClientFactory>().CreateClient("ServerApi"));
 
 builder.Services.AddServices("https://localhost:8081/");
 
 builder.Services.AddBlazoredLocalStorage();
 builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthStateProvider>();
-//builder.Services.AddScoped<UserContextService>();
 
 builder.Services.AddScoped<ICartService, CartService>();
 builder.Services.AddSingleton<IToastCloneService, ToastCloneService>();
@@ -49,22 +46,18 @@ builder.Services.AddScoped<IConfirmDialogService, ConfirmDialogService>();
 
 builder.Services.AddAuthentication(options =>
 {
-    // Thiết lập Scheme mặc định là JWT Bearer
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
     options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
 })
     .AddJwtBearer(options =>
     {
-        // Cấu hình validate token (để server hiểu token hợp lệ)
         options.TokenValidationParameters = new TokenValidationParameters
         {
-            ValidateIssuer = false, // Có thể để true nếu server API có set Issuer
-            ValidateAudience = false, // Có thể để true nếu server API có set Audience
+            ValidateIssuer = false,
+            ValidateAudience = false,
             ValidateLifetime = true,
             ValidateIssuerSigningKey = true,
 
-            // QUAN TRỌNG: Key này phải TRÙNG KHỚP với Key mà API dùng để tạo Token
-            // Nếu bạn không có Key ở đây, bạn có thể comment dòng này lại để chạy tạm (nhưng kém bảo mật)
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("Key-bi-mat-dai-tren-32-ky-tu-giong-ben-api")),
             RoleClaimType = "role"
         };
