@@ -3,6 +3,7 @@ using Blazor_FE.Services.Products;
 using Blazor_FE.Services.Categories;
 using Blazor_FE.Services.Orders;
 using Blazor_FE.Services.Users;
+using Blazor_FE.Services.Customers;
 
 namespace Blazor_FE.Extensions;
 
@@ -17,6 +18,7 @@ public static class ServiceCollectionExtensions
         services.AddHttpClient<IProductService, ProductService>(configure);
         services.AddHttpClient<ICategoryService, CategoryService>(configure);   
         services.AddHttpClient<IOrderService, OrderService>(configure);
+        services.AddHttpClient<ICustomerService, CustomerService>(configure);
         services.AddHttpClient<IUserService, UserService>(configure);
         services.AddHttpClient<IUserContextService, UserContextService>(configure);
         return services;

@@ -1,0 +1,120 @@
+﻿@page "/account-info"
+@using Blazor_FE.Services.Customers.dtos
+@inject ICustomerService CustomerService
+@inject IUserContextService UserContextService
+@inject IToastCloneService ToastService
+@inject NavigationManager NavigationManager
+
+<div class="container mx-auto p-8">
+    <h1 class="text-2xl font-bold mb-6">Thông tin tài khoản</h1>
+
+    @if (customer == null)
+    {
+        <p>Đang tải thông tin...</p>
+    }
+    else
+    {
+        <EditForm Model="@request" OnValidSubmit="UpdateProfileInfo" OnInvalidSubmit="HandleInvalidSubmit">
+            <DataAnnotationsValidator />
+
+            <div class="max-w-4xl mx-auto bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
+                <div class="mb-4">
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="name">
+                        Họ và tên
+                    </label>
+                    <InputText id="name" @bind-Value="request.Name" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" />
+                    <ValidationMessage For="@(() => request.Name)" />
+                </div>
+
+                <div class="mb-4">
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="phone">
+                        Số điện thoại
+                    </label>
+                    <InputText id="phone" @bind-Value="request.Phone" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" />
+                    <ValidationMessage For="@(() => request.Phone)" />
+                </div>
+
+                <div class="mb-4">
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="email">
+                        Email
+                    </label>
+                    <InputText id="email" @bind-Value="request.Email" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" />
+                    <ValidationMessage For="@(() => request.Email)" />
+                </div>
+
+                <div class="mb-6">
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="address">
+                        Địa chỉ
+                    </label>
+                    <InputText id="address" @bind-Value="request.Address" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" />
+                    <ValidationMessage For="@(() => request.Address)" />
+                </div>
+
+                <div class="flex items-center justify-between">
+                    <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
+                        Cập nhật
+                    </button>
+                </div>
+            </div>
+        </EditForm>
+    }
+</div>
+
+@code {
+    private CustomerModel customer;
+    private CustomerRequestDTO request = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var userId = await UserContextService.GetUserIdAsync();
+        if (userId != 0)
+        {
+            var result = await CustomerService.GetCustomerByAccountIdAsync(userId);
+            if (result != null && result.StatusCode == 200)
+            {
+                customer = result.Content;
+                request = new CustomerRequestDTO
+                {
+                    Name = customer.Name,
+                    Phone = customer.Phone,
+                    Email = customer.Email,
+                    Address = customer.Address,
+                    AccountId = userId
+                };
+            }
+            else
+            {
+                ToastService.ShowToast("Không thể tải thông tin khách hàng.", ToastLevel.Error);
+            }
+        }
+        else
+        {
+           
+        }
+    }
+
+    public void HandleInvalidSubmit(EditContext context)
+    {
+        foreach (var message in context.GetValidationMessages())
+        {
+            ToastService.ShowToast(message, ToastLevel.Error);
+        }
+    }
+
+    public async Task UpdateProfileInfo()
+    {
+        if (customer == null) return;
+
+        var result = await CustomerService.UpdateCustomerAsync(customer.CustomerId, request);
+
+        if (result != null && result.StatusCode == 200)
+        {
+            ToastService.ShowToast("Cập nhật thông tin thành công!", ToastLevel.Success);
+            customer = result.Content;
+        }
+        else
+        {
+            ToastService.ShowToast(result?.Message ?? "Có lỗi xảy ra khi cập nhật.", ToastLevel.Error);
+        }
+    }
+}
