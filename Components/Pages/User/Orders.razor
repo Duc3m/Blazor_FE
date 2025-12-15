@@ -1,6 +1,7 @@
 ﻿@page "/orders"
 @inject NavigationManager NavigationManager
 @inject IOrderService OrderService
+@inject IUserContextService UserContextService
 
 <h1 class="text-3xl font-bold text-gray-800 mb-6">Đơn hàng</h1>
 
@@ -44,85 +45,50 @@
         </table>
     </div>
 
-    <DynamicPagination Count="@totalPages" Selected="@currentPage" OnPageChanged="OnPageChanged" />
+    @* <DynamicPagination Count="@totalPages" Selected="@currentPage" OnPageChanged="OnPageChanged" /> *@
 </div>
 
 @code {
     public List<OrderModel>? orders;
     public int totalPages;
-    public int pageSize = 10; // Đơn hàng thường hiển thị ít hơn sản phẩm
-    private int currentPage = 1;
+    // public int pageSize = 10;
+    // private int currentPage = 1;
     private bool _hasLoaded = false;
+    private CustomerModel? currentCustomer;
 
     // Dictionary để tra cứu nhanh: Key = ID Khách, Value = Tên Khách
-    private Dictionary<int, string> customerLookup = new Dictionary<int, string>();
-
-    // protected override async Task OnAfterRenderAsync(bool firstRender)
-    // {
-    //     if (firstRender && !_hasLoaded)
-    //     {
-    //         _hasLoaded = true;
-    //         try
-    //         {
-    //             await LoadData(1);
-    //         }
-    //         finally
-    //         {
-    //             StateHasChanged();
-    //         }
-    //     }
-    // }
+    // private Dictionary<int, string> customerLookup = new Dictionary<int, string>();
 
     protected override async Task OnInitializedAsync()
     {
-        // var categories = await CategoryService.GetCategoriesAsync();
-        // if (categories != null)
-        // {
-        //     categoryLookup = categories.Content.ToDictionary(c => c.CategoryId, c => c.CategoryName);
-        // }
-        await LoadData(1);
+        // await LoadData();
     }
 
-    private async Task LoadData(int page)
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        // Gọi Service lấy đơn hàng phân trang
-        var response = await OrderService.GetAllOrdersAsync(page, pageSize);
-		
-        if (response != null)
+        if (firstRender && !_hasLoaded)
         {
-            // Gán dữ liệu vào list
-            orders = response.Content;
-
-            // Xử lý map tên khách hàng vào đơn hàng (Client-side Join)
-            // if (orders != null)
-            // {
-            //     foreach (var order in orders)
-            //     {
-            //         Thử tìm CustomerId trong Dictionary, nếu có thì gán tên
-            //         if (customerLookup.TryGetValue(order.CustomerId, out var customerName))
-            //         {
-            //             Lưu ý: OrderModel cần có thêm thuộc tính CustomerName (không có trong DB)
-            //             order.CustomerName = customerName;
-            //         }
-            //         else
-            //         {
-            //             order.CustomerName = "Khách vãng lai"; Hoặc xử lý khi không tìm thấy
-            //         }
-            //     }
-            // }
-
-            // Cập nhật thông tin phân trang từ Metadata
-            if (response.Metadata != null)
-            {
-                totalPages = response.Metadata.TotalPages;
-            }
+            _hasLoaded = true;
+            await LoadData();
+            StateHasChanged();
         }
     }
 
-    public async Task OnPageChanged(int page)
+    private async Task LoadData()
     {
-        currentPage = page;
-        await LoadData(page);
-        StateHasChanged();
+        currentCustomer = await UserContextService.GetCurrentCustomerAsync();
+        var response = await OrderService.GetOrdersByCustomerIdAsync(currentCustomer.CustomerId);
+		
+        if (response != null)
+        {
+            orders = response.Content;
+        }
     }
+
+    // public async Task OnPageChanged(int page)
+    // {
+    //     currentPage = page;
+    //     await LoadData(page);
+    //     StateHasChanged();
+    // }
 }

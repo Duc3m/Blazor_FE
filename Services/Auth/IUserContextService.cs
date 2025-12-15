@@ -6,6 +6,6 @@ public interface IUserContextService
 {
     public Task<ClaimsPrincipal> GetCurrentUserAsync();
     public Task<bool> IsUserAuthenticatedAsync();
-    public Task<int> GetUserIdAsync();
-    public Task<Models.CustomerModel> GetCustomerByUserIdAsync();
+    public Task<int> GetCurrentUserIdAsync();
+    public Task<Models.CustomerModel> GetCurrentCustomerAsync();
 }

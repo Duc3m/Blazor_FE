@@ -21,7 +21,7 @@ public class CartService : ICartService
 
     private async Task<string> GetCartStorageKeyAsync()
     {
-        int userId = await _userContextService.GetUserIdAsync();
+        int userId = await _userContextService.GetCurrentUserIdAsync();
         return userId != 0 ? $"cart_{userId}" : "guest_cart";
     }
 

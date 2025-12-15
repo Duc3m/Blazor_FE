@@ -15,6 +15,7 @@
     <PackageReference Include="Blazorise.Tailwind" Version="1.8.7" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.0" />
     <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.15.0" />
+    <PackageReference Include="VNPAY.NET" Version="2.1.0" />
   </ItemGroup>
 
   <ItemGroup>
