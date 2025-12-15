@@ -3,7 +3,7 @@
 @using Blazor_FE.Services.Products.dtos
 @using Blazor_FE.Services.Supplier
 @using ProductDTO = Blazor_FE.Models.ProductModel
-@using Microsoft.CodeAnalysis
+@* @using Microsoft.CodeAnalysis *@
 @using Blazorise.DataGrid
 @inject ISupplierService SupplierService
 @inject IProductService ProductService
@@ -69,8 +69,7 @@
         PageSize="@pageSize"
         Sortable
         Responsive
-        UseInternalEditing="false"
-    >
+        UseInternalEditing="false">
         <DataGridColumns>
             @* ACTIONS *@
             <DataGridColumn Field="@nameof(ProductDTO.ProductId)" Caption="ID" Editable="false"></DataGridColumn>
@@ -120,6 +119,123 @@
                     </div>
                 </DisplayTemplate>
             </DataGridColumn>
+            @* ADD MODAL *@
+            @{
+                var editProduct = selectedProduct.value;
+            }
+            <Modal @ref="@addModal">
+                <ModalContent Size="ModalSize.Default" Class="p-4">
+                    <div class="header-modal">
+                        <CloseButton @onclick="@(() => CloseModal("ADD"))"/>
+                        <ModalTitle>Add product</ModalTitle>
+                    </div>
+                    @* EDIT FORM *@
+                    <EditForm Model="@newProduct" OnValidSubmit="handleAddProduct">
+                        <Field>
+                            <FieldLabel>Product Name</FieldLabel>
+                            <InputText
+                                Class="custom-input"
+                                @bind-Value="newProduct.ProductName" 
+                                placeholder="Product Name"
+                            />
+                        </Field>
+                        <Field>
+                            <FieldLabel>Barcode</FieldLabel>
+                            <InputText 
+                                Class="custom-input" 
+                                @bind-Value="newProduct.Barcode" 
+                                placeholder="Barcode"
+                            />
+                        </Field>
+                        <Field>
+                            <FieldLabel>Price</FieldLabel>
+                            <InputNumber
+                                TValue="decimal"
+                                @bind-Value="newProduct.Price"
+                                placeholder="Price"
+                                Class="custom-input"
+                            />
+                        </Field>
+                        <Field>
+                            <FieldLabel>Unit</FieldLabel>
+                            <InputText 
+                                Class="custom-input" 
+                                @bind-Value="newProduct.Unit" 
+                                placeholder="Unit"
+                            />
+                        </Field>
+                        <Field>
+                            <FieldLabel>Image</FieldLabel>
+                            <InputFile
+                                OnChange="OnImageChanged" 
+                                accept="image/*"
+                            />
+                            <div class="mt-2">
+                                <img
+                                    class=""
+                                    src="@newProduct.ProductImg"/>
+                            </div>
+                        </Field>
+                        <Footer class="flex justify-end space-x-2 p-4">
+                            <button
+                                class="rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600"
+                                type="submit">
+                                Save
+                            </button>
+                            <button
+                                class="rounded bg-gray-200 px-4 py-2 text-gray-700 hover:bg-gray-300"
+                                @onclick="@(() => CloseModal("ADD"))">
+                                Cancel
+                            </button>
+                        </Footer>
+                    </EditForm>
+                </ModalContent>
+            </Modal>
+            @*  EDIT MODAL *@
+            <Modal @ref="@editModal">
+                <ModalContent Size="ModalSize.Default" Class="p-4">
+                    <div class="header-modal">
+                        <CloseButton @onclick="@(() => CloseModal("EDIT"))"/>
+                        <ModalTitle>Edit</ModalTitle>
+                    </div>
+                    @* EDIT FORM *@
+                    <EditForm Model="@editProduct" OnValidSubmit="handleEditProduct">
+                        <Field>
+                            <FieldLabel>Product Name</FieldLabel>
+                            <TextEdit @bind-Text="@editProduct!.ProductName"/>
+                        </Field>
+                        <Field>
+                            <FieldLabel>Price (VND)</FieldLabel>
+                            <NumericEdit TValue="decimal" @bind-Value="editProduct!.Price"/>
+                        </Field>
+                        <Field>
+                            <FieldLabel>Unit</FieldLabel>
+                            <TextEdit @bind-Text="@editProduct!.Unit"/>
+                        </Field>
+                        <Field>
+                            <FieldLabel>Image</FieldLabel>
+                            @if (!string.IsNullOrEmpty(editProduct?.ProductImg))
+                            {
+                                <div class="mt-2">
+                                    <img src="@imagePreviews.FirstOrDefault()" alt="image" style="max-width: 200px; max-height: 200px;" class="mt-2" />
+                                </div>
+                            }
+                        </Field>
+                        <Footer class="flex justify-end space-x-2 p-4">
+                            <button
+                                class="rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600"
+                                type="submit">
+                                Save
+                            </button>
+                            <button
+                                class="rounded bg-gray-200 px-4 py-2 text-gray-700 hover:bg-gray-300"
+                                @onclick="@(() => CloseModal("EDIT"))">
+                                Cancel
+                            </button>
+                        </Footer>
+                    </EditForm>
+                </ModalContent>
+            </Modal>
         </DataGridColumns>
     </DataGrid>
     @* VIEW MODAL *@

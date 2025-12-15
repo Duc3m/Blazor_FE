@@ -3,25 +3,22 @@
 @inject ICategoryService CategoryService
 
 <div class="grid grid-cols-1 lg:grid-cols-5">
-    <div class="d-grid lg:col-span-1"></div>
+    @* <div class="d-grid lg:col-span-1"></div>
     <div class="d-grid lg:col-span-4">
-        <div>
-            <div class="items-center flex">
-                <Icon Name="IconName.Search"
-                      IconSize="IconSize.ExtraSmall"
-                      Class="absolute pl-1 text-gray-400" />
-                <input type="text" placeholder="Tìm kiếm..."
-                       class="text-sm pl-6 border-gray-350 border rounded-lg py-1 focus:border-sky-500 focus:outline focus:outline-sky-500" />
-            </div>
+        
+    </div> *@
 
+    <ProductFilter OnFilterApply="OnFilterApply" OnResetFilter="OnResetFilter"/>
 
-        </div>
-    </div>
-
-    <ProductFilter />
     @if(products == null)
     {
         <Progress Color="Color.Success" Class="bg-sky-50 *:bg-blue-500 lg:col-span-4" Indeterminate />
+    }
+    else if (products.Count == 0)
+    {
+        <div class="flex-column items-center justify-center lg:col-span-4 mt-4">
+            <h3 class="text-gray-500 text-center text-lg">Không tìm thấy sản phẩm nào.</h3>
+        </div>
     }
     else
     {
@@ -29,7 +26,7 @@
             <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
             @foreach(var product in products)
             {
-                <ProductCard Product="@product" />
+                <ProductCard Product="@product" ClickEvent="OnProductClicked"/>
             }
             </div>
 
@@ -38,11 +35,23 @@
     }
 </div>
 
+<Modal @ref="modalRef"
+       CloseOnBackdrop="true">
+    <ModalContent Centered
+                  Size="ModalSize.Large">
+        <ProductDetail @bind-productModel="productModel"
+                       OnCloseRequest="@(()=>HideModal())"/>
+    </ModalContent>
+</Modal>
+
 @code {
     public List<ProductModel>? products;
     public int totalPages;
     public int pageSize = 12;
     private int currentPage = 1;
+    private ProductModel productModel = new ProductModel();
+    private Modal modalRef;
+    private ProductFilterRequest currentFilterRequest = new ProductFilterRequest();
 
     private Dictionary<int, string> categoryLookup = new Dictionary<int, string>();
 
@@ -58,7 +67,8 @@
 
     private async Task LoadData(int page)
     {   
-        var response = await ProductService.GetProductsPageAsync(page, pageSize);
+
+        var response = await ProductService.FilterProductAsync(currentFilterRequest, page, pageSize);
         if (response != null)
         {
             products = response.Content;
@@ -79,6 +89,47 @@
     {
         currentPage = page;
         await LoadData(page);
+    }
+
+    public async Task OnProductClicked(ProductModel product)
+    {
+        productModel = product;
+        ShowModal();
+    }
+
+    public async Task OnFilterApply(ProductFilterRequest filterRequest)
+    {
+        // if(selectedCategoryIds == null || !selectedCategoryIds.Any())
+        // {
+        //     currentFilterRequest.CategoryIds = null;
+        // }
+        // else
+        // {
+        //     currentFilterRequest.CategoryIds = selectedCategoryIds;
+        // }
+        if(filterRequest != null)
+        {
+            currentFilterRequest = filterRequest;
+        }
+        currentPage = 1;
+        await LoadData(currentPage);
+    }
+
+    public async Task OnResetFilter()
+    {
+        currentFilterRequest = new ProductFilterRequest();
+        currentPage = 1;
+        await LoadData(currentPage);
+    }
+
+    private Task ShowModal()
+    {
+        return modalRef.Show();
+    }
+
+    private Task HideModal()
+    {
+        return modalRef.Hide();
     }
 
 }

@@ -1,0 +1,158 @@
+﻿@page "/product-modal"
+@inject ICartService CartService
+@inject IToastCloneService ToastService
+@inject IUserContextService UserContextService
+
+<div class="bg-white rounded-2xl p-6 md:p-8">
+
+        <button class="absolute top-4 right-4 z-10 p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors"
+                @onclick="CloseModal">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+        </button>
+
+        <div class="p-6 md:p-8">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-10">
+
+                <div class="flex flex-col">
+                    <div class="w-full aspect-square bg-gray-50 rounded-xl border border-gray-100 flex items-center justify-center mb-4 relative overflow-hidden group">
+                        <img src="@productModel.ProductImg" alt="" class="object-contain w-3/4 h-3/4 transition-transform duration-500 group-hover:scale-110" />
+                    </div>
+                </div>
+
+                <div class="flex flex-col justify-center">
+
+                    <h1 class="text-2xl lg:text-3xl font-bold text-gray-900 mb-2 leading-tight">
+                        @productModel.ProductName
+                    </h1>
+
+                    <div class="flex items-center mb-4">
+                        <div class="flex text-yellow-400 text-sm">
+                            @for (int i = 0; i < 5; i++)
+                            {
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-4 h-4">
+                                    <path fill-rule="evenodd" d="M10.788 3.21c.448-1.077 1.976-1.077 2.424 0l2.082 5.007 5.404.433c1.164.093 1.636 1.545.749 2.305l-4.117 3.527 1.257 5.273c.271 1.136-.964 2.033-1.96 1.425L12 18.354 7.373 21.18c-.996.608-2.231-.29-1.96-1.425l1.257-5.273-4.117-3.527c-.887-.76-.415-2.212.749-2.305l5.404-.433 2.082-5.006z" clip-rule="evenodd" />
+                                </svg>
+                            }
+                        </div>
+                    </div>
+
+                    <div class="mb-5">
+                        <div class="flex items-center justify-between mb-2">
+                            <label class="text-sm font-medium text-gray-900">Đơn vị: @productModel.Unit</label>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center mb-5 bg-gray-50 rounded-lg w-fit">
+                        <span class="text-rose-600 text-2xl font-bold mr-3">@(productModel.Price.ToVnd())</span>
+                    </div>
+
+                    <div class="flex flex-col gap-3 mb-6">
+
+                        <div class="flex items-center justify-between border border-gray-300 rounded-full h-10 w-32 bg-white self-start">
+                            <button class="w-8 h-full text-gray-500 hover:bg-gray-100 rounded-l-full flex items-center justify-center transition-colors"
+                                    @onclick="@(()=>ChangeQuantity(quantity-1))">-</button>
+                            <input type="number" class="w-[45%] no-spinner border-none text-center text-gray-900 outline-none font-medium bg-transparent text-sm focus:none"
+                                   @bind-value="@quantity"
+                                   readonly>
+                            <button class="w-8 h-full text-gray-500 hover:bg-gray-100 rounded-r-full flex items-center justify-center transition-colors"
+                                    @onclick="@(()=>ChangeQuantity(quantity+1))">+</button>
+                        </div>
+
+                        <button class="w-full bg-blue-500 hover:bg-blue-700 text-white font-bold h-12 rounded-full flex items-center justify-center gap-2 transition-all"
+                                @onclick="AddToCart">
+                            Thêm vào giỏ hàng
+                        </button>
+                    </div>
+
+                    <div class="border-t border-gray-100 pt-4 text-xs text-gray-500 space-y-2">
+                        <p class="flex justify-between"><span class="font-medium text-gray-900">Danh mục:</span> <span>@productModel.CategoryName</span></p>
+                        <p class="flex justify-between"><span class="font-medium text-gray-900">Tag:</span> <span></span></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+</div>
+
+@code {
+
+    [Parameter] 
+    public ProductModel productModel { get; set; }
+    [Parameter]
+    public EventCallback<ProductModel> productModelChanged { get; set; }
+    [Parameter]
+    public EventCallback OnCloseRequest { get; set; }
+    private bool isAdding = false;
+    private int quantity = 1;
+
+    private async Task CloseModal()
+    {
+        if (OnCloseRequest.HasDelegate)
+        {
+            await OnCloseRequest.InvokeAsync();
+        }
+    }
+
+    private async Task ChangeQuantity(int newQuantity)
+    {
+        if (ValidateQuantity(newQuantity) == false)
+        {
+            await Task.Delay(100);
+            return;
+        }
+        quantity = newQuantity;
+    }
+
+    private bool ValidateQuantity(int quantity)
+    {
+        if (quantity < 1)
+        {
+            quantity = 1;
+            ToastService.ShowToast("Số lượng phải lớn hơn hoặc bằng 1!", ToastLevel.Warning);
+            return false;
+        }
+        return true;
+    }
+
+    public async Task AddToCart()
+    {
+        if(!ValidateQuantity(quantity))
+        {
+            return;
+        }
+
+        if (await UserContextService.IsUserAuthenticatedAsync() == false)
+        {
+            ToastService.ShowToast("Vui lòng đăng nhập để thêm sản phẩm vào giỏ!", ToastLevel.Error);
+            return;
+        }
+
+        if (isAdding) return; // Chặn spam
+        isAdding = true;
+        StateHasChanged();
+
+        try
+        {
+            var cartItem = new CartItemModel
+            {
+                ProductId = productModel.ProductId,
+                Name = productModel.ProductName,
+                Price = productModel.Price,
+                ImageUrl = productModel.ProductImg,
+                Quantity = quantity
+            };
+
+            await CartService.AddToCartAsync(cartItem);
+            ToastService.ShowToast("Đã thêm sản phẩm vào giỏ!");
+        }
+        finally
+        {
+            await Task.Delay(250);
+            isAdding = false;
+            StateHasChanged();
+        }
+
+    }
+
+}

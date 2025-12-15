@@ -4,11 +4,11 @@
         <td class="px-6 py-4 whitespace-nowrap">
             <div class="flex items-center">
                 <div class="flex-shrink-0 h-12 w-12">
-                    <img class="h-12 w-12 rounded-md object-cover" src="@Item.ImageUrl" alt="@Item.Name">
+                    <img class="h-12 w-12 rounded-md object-cover" src="@Item.Product.ProductImg" alt="@Item.Product.ProductName">
                 </div>
                 <div class="ml-4">
-                    <div class="text-sm font-medium text-gray-900">@Item.Name</div>
-                    <div class="text-sm text-gray-500">@Item.Unit</div>
+                    <div class="text-sm font-medium text-gray-900">@Item.Product.ProductName</div>
+                    <div class="text-sm text-gray-500">@Item.Product.Unit</div>
                 </div>
             </div>
         </td>
@@ -16,15 +16,15 @@
             @Item.Quantity
         </td>
         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-            @Item.UnitPrice.ToString("C")
+            @Item.Price.ToString("C")
         </td>
         <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium text-gray-900">
-            @Item.TotalPrice.ToString("C")
+            @Item.Subtotal.ToString("C")
         </td>
     </tr>
 }
 
 @code {
     [Parameter, EditorRequired]
-    public OrderDetail.ProductItemModel? Item { get; set; }
+    public OrderItemViewModel Item { get; set; }
 }

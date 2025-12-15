@@ -8,12 +8,12 @@ namespace Blazor_FE.Services.Cart;
 public class CartService : ICartService
 {
     private readonly ILocalStorageService _localStorage;
-    private readonly UserContextService _userContextService;
-    private List<CartItemModel> _cartCache = new();
+    private readonly IUserContextService _userContextService;
+    private List<CartItemModel>? _cartCache = null;
 
     public event Action? OnCartChanged;
 
-    public CartService(ILocalStorageService localStorage, UserContextService userContextService)
+    public CartService(ILocalStorageService localStorage, IUserContextService userContextService)
     {
         _localStorage = localStorage;
         _userContextService = userContextService;
@@ -21,20 +21,21 @@ public class CartService : ICartService
 
     private async Task<string> GetCartStorageKeyAsync()
     {
-        int userId = await _userContextService.GetUserIdAsync();
+        int userId = await _userContextService.GetCurrentUserIdAsync();
         return userId != 0 ? $"cart_{userId}" : "guest_cart";
     }
 
     public async Task LoadCartFromStorageAsync()
     {
         var storageKey = await GetCartStorageKeyAsync();
-        _cartCache = await _localStorage.SafeGetItemAsync<List<CartItemModel>>(storageKey) ?? new List<CartItemModel>();
+        _cartCache = await _localStorage.SafeGetItemAsync<List<CartItemModel>>(storageKey) 
+            ?? new List<CartItemModel>();
         OnCartChanged?.Invoke();
     }
 
     public async Task<List<CartItemModel>> GetCartItemsAsync()
     {
-        if (_cartCache.Count == 0)
+        if (_cartCache == null)
         {
             await LoadCartFromStorageAsync();
         }
@@ -43,7 +44,7 @@ public class CartService : ICartService
 
     public async Task AddToCartAsync(CartItemModel item)
     {
-        if (_cartCache.Count == 0) await LoadCartFromStorageAsync();
+        if (_cartCache == null) await LoadCartFromStorageAsync();
         var existingItem = _cartCache.FirstOrDefault(cartItem => cartItem.ProductId == item.ProductId);
         if (existingItem != null)
         {

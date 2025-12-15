@@ -1,8 +1,11 @@
 ﻿@page "/orders"
+@inject NavigationManager NavigationManager
+@inject IOrderService OrderService
+@inject IUserContextService UserContextService
 
-<h1 class="text-3xl font-bold text-gray-800 mb-6">Đơn hàng</h1>
+<h1 class="text-3xl font-bold text-gray-800 mb-6 ml-28">Đơn hàng</h1>
 
-<div class="bg-white shadow-md rounded-lg overflow-hidden">
+<div class="mx-auto max-w-4xl bg-white shadow-md rounded-lg overflow-hidden">
     <div class="overflow-x-auto">
         <table class="min-w-full divide-y divide-gray-200">
             <thead class="bg-gray-50">
@@ -25,7 +28,7 @@
                 </tr>
             </thead>
             <tbody class="bg-white divide-y divide-gray-200">
-                @if (orders.Any())
+                @if (orders != null)
                 {
                     @foreach (var order in orders)
                     {
@@ -41,79 +44,51 @@
             </tbody>
         </table>
     </div>
+
+    @* <DynamicPagination Count="@totalPages" Selected="@currentPage" OnPageChanged="OnPageChanged" /> *@
 </div>
 
 @code {
-    private List<OrderModel> orders = new();
+    public List<OrderModel>? orders;
+    public int totalPages;
+    // public int pageSize = 10;
+    // private int currentPage = 1;
+    private bool _hasLoaded = false;
+    private CustomerModel? currentCustomer;
 
-    protected override void OnInitialized()
+    // Dictionary để tra cứu nhanh: Key = ID Khách, Value = Tên Khách
+    // private Dictionary<int, string> customerLookup = new Dictionary<int, string>();
+
+    protected override async Task OnInitializedAsync()
     {
-        orders = new List<OrderModel>
+        // await LoadData();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && !_hasLoaded)
         {
-            new OrderModel
-            {
-                ProductImageUrl = "https://media.discordapp.net/attachments/748023581031530536/1442535004235366502/1171771917443813406remix-1699442822844.png?ex=693d83ea&is=693c326a&hm=5775bc6dd8a715bbee88a53141ffd24adc521b1714c9543d2b1236b7334f4ffd&=&format=webp&quality=lossless&width=900&height=675",
-                ProductName = "Haldiram's Nagpur Aloo Bhujia",
-                ProductInfo = "400g",
-                OrderDate = new DateTime(2023, 3, 5),
-                Status = "pending",
-                Amount = 800000
-            },
-            new OrderModel
-            {
-                ProductImageUrl = "https://media.discordapp.net/attachments/748023581031530536/1442535004235366502/1171771917443813406remix-1699442822844.png?ex=693d83ea&is=693c326a&hm=5775bc6dd8a715bbee88a53141ffd24adc521b1714c9543d2b1236b7334f4ffd&=&format=webp&quality=lossless&width=900&height=675",
-                ProductName = "Nutri Choise Biscuit",
-                ProductInfo = "2 Pkt",
-                OrderDate = new DateTime(2023, 7, 9),
-                Status = "paid",
-                Amount = 45.00m
-            },
-            new OrderModel
-            {
-                ProductImageUrl = "https://media.discordapp.net/attachments/748023581031530536/1442535004235366502/1171771917443813406remix-1699442822844.png?ex=693d83ea&is=693c326a&hm=5775bc6dd8a715bbee88a53141ffd24adc521b1714c9543d2b1236b7334f4ffd&=&format=webp&quality=lossless&width=900&height=675",
-                ProductName = "Cadbury Dairy Milk 5 Star Bites",
-                ProductInfo = "202 g",
-                OrderDate = new DateTime(2023, 10, 3),
-                Status = "paid",
-                Amount = 99.00m
-            },
-            new OrderModel
-            {
-                ProductImageUrl = "https://media.discordapp.net/attachments/748023581031530536/1442535004235366502/1171771917443813406remix-1699442822844.png?ex=693d83ea&is=693c326a&hm=5775bc6dd8a715bbee88a53141ffd24adc521b1714c9543d2b1236b7334f4ffd&=&format=webp&quality=lossless&width=900&height=675",
-                ProductName = "Onion Flavour Potato",
-                ProductInfo = "100 g",
-                OrderDate = new DateTime(2023, 3, 5),
-                Status = "paid",
-                Amount = 12.00m
-            },
-            new OrderModel
-            {
-                ProductImageUrl = "https://media.discordapp.net/attachments/748023581031530536/1442535004235366502/1171771917443813406remix-1699442822844.png?ex=693d83ea&is=693c326a&hm=5775bc6dd8a715bbee88a53141ffd24adc521b1714c9543d2b1236b7334f4ffd&=&format=webp&quality=lossless&width=900&height=675",
-                ProductName = "Salted Instant Popcorn",
-                ProductInfo = "500 g",
-                OrderDate = new DateTime(2023, 7, 9),
-                Status = "canceled",
-                Amount = 6.00m
-            },
-            new OrderModel
-            {
-                ProductImageUrl = "https://via.placeholder.com/100x100.png?text=Yogurt",
-                ProductName = "Blueberry Greek Yogurt",
-                ProductInfo = "500 g",
-                OrderDate = new DateTime(2023, 10, 3),
-                Status = "paid",
-                Amount = 18.00m
-            }
-        };
+            _hasLoaded = true;
+            await LoadData();
+            StateHasChanged();
+        }
     }
 
-    public class OrderModel
+    private async Task LoadData()
     {
-        public string ProductImageUrl { get; set; } = string.Empty;
-        public string ProductName { get; set; } = string.Empty;
-        public string ProductInfo { get; set; } = string.Empty;
-        public DateTime OrderDate { get; set; }
-        public string Status { get; set; } = string.Empty; // "pending", "paid", "canceled"
-        public decimal Amount { get; set; }
+        currentCustomer = await UserContextService.GetCurrentCustomerAsync();
+        var response = await OrderService.GetOrdersByCustomerIdAsync(currentCustomer.CustomerId);
+		
+        if (response != null)
+        {
+            orders = response.Content;
+        }
     }
+
+    // public async Task OnPageChanged(int page)
+    // {
+    //     currentPage = page;
+    //     await LoadData(page);
+    //     StateHasChanged();
+    // }
 }

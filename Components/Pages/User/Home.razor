@@ -3,29 +3,31 @@
 @inject AuthenticationStateProvider AuthStateProvider
 
 <div class="bg-white">
-    <div class="mx-auto max-w-7xl py-16 px-4 sm:px-6 lg:px-8">
-        <div class="overflow-hidden rounded-lg bg-emerald-600 shadow-xl lg:grid lg:grid-cols-2 lg:gap-4">
+    <div class="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+        <div class="overflow-hidden rounded-lg bg-sky-600 shadow-xl lg:grid lg:grid-cols-2">
             <div class="px-6 pt-10 pb-12 sm:px-16 sm:pt-16 lg:py-16 lg:pr-0 xl:py-20 xl:px-20">
                 <div class="lg:self-center">
                     <h2 class="text-3xl font-bold tracking-tight text-white sm:text-4xl">
                         <span class="block">Sẵn sàng mua sắm?</span>
                         <span class="block">Khám phá ngay hôm nay.</span>
                     </h2>
-                    <p class="mt-4 text-lg leading-6 text-emerald-200">
+                    <p class="mt-4 text-lg leading-6 text-sky-200">
                         Chúng tôi mang đến những sản phẩm chất lượng nhất với giá cả phải chăng.
                     </p>
-                    <a href="/product" class="mt-8 inline-flex items-center rounded-md border border-transparent bg-white px-6 py-3 text-base font-medium text-emerald-600 shadow-sm hover:bg-emerald-50">
+                    <a href="/product" class="mt-8 inline-flex items-center rounded-md border border-transparent bg-white px-6 py-3 text-base font-medium text-sky-600 shadow-sm hover:bg-sky-50">
                         Xem sản phẩm
                     </a>
                 </div>
             </div>
-            <div class="aspect-w-5 aspect-h-3 -mt-6 md:aspect-w-2 md:aspect-h-1">
-                <img class="translate-x-6 translate-y-6 transform rounded-md object-cover object-left-top sm:translate-x-16 lg:translate-y-20" src="https://images.unsplash.com/photo-1542838132-92c53300491e?q=80&w=1974&auto=format&fit=crop" alt="App screenshot">
+            <div class="relative h-64 w-full sm:h-72 md:h-96 lg:h-auto">
+                <img class="absolute inset-0 h-full w-full object-cover" src="https://images.unsplash.com/photo-1542838132-92c53300491e?q=80&w=1974&auto=format&fit=crop" alt="Fresh produce">
             </div>
         </div>
     </div>
 </div>
 
+
+@* https://images.unsplash.com/photo-1542838132-92c53300491e?q=80&w=1974&auto=format&fit=crop *@
 @code {
     protected override async Task OnInitializedAsync()
     {
@@ -38,7 +40,7 @@
             {
                 Navigation.NavigateTo("/admin");
             }
-            
+
         }
     }
 }

@@ -1,6 +1,7 @@
 ﻿using System.Globalization;
 using Blazor_FE.Models;
 using Blazor_FE.Models.Product;
+using Blazor_FE.Services.Products.dtos;
 using Blazor_FE.Services.Base;
 using Blazor_FE.Services.Products.dtos;
 using Microsoft.AspNetCore.Components.Forms;
@@ -61,7 +62,40 @@ public class ProductService : IProductService
         }
     }
 
-    public async Task<APIResponse<T>> SearchAsync<T>(ProductFilterDTO filter, int page, int pageSize) where T : class
+    public async Task<APIResponse<List<ProductModel>>> FilterProductAsync(ProductFilterRequest filterRequest, int page, int pageSize)
+    {
+        try
+        {
+            var queryParams = new Dictionary<string, string?>
+            {
+                ["pageNumber"] = page.ToString(),
+                ["pageSize"] = pageSize.ToString(),
+                ["searchTerm"] = filterRequest.SearchTerm,
+                ["minPrice"] = filterRequest.MinPrice?.ToString(),
+                ["maxPrice"] = filterRequest.MaxPrice?.ToString(),
+                ["sortBy"] = filterRequest.SortBy,
+                ["sortDescending"] = filterRequest.SortDescending.ToString() 
+            };
+
+            var url = QueryHelpers.AddQueryString("api/v1/product", queryParams);
+            if (filterRequest.CategoryIds != null && filterRequest.CategoryIds.Any())
+            {
+                foreach (var id in filterRequest.CategoryIds)
+                {
+                    url = QueryHelpers.AddQueryString(url, "categoryIds", id.ToString());
+                }
+            }
+
+            var response = _httpClient.GetFromJsonAsync<APIResponse<List<ProductModel>>>(url);
+            return await response;
+        }
+        catch (Exception ex)
+        {
+            throw new Exception(ex.Message);
+        }
+    }
+
+    public async Task<APIResponse<T>> GetProductsPageAsyncV1<T>(int page, int pageSize) where T : class
     {
         try
         {

@@ -1,0 +1,298 @@
+﻿@page "/admin/users"
+@using Blazor_FE.Core
+@using Blazor_FE.Services.Base
+@using Blazor_FE.Services.Users.dtos
+@using Blazorise.DataGrid
+@using System.Text.RegularExpressions
+@inject IUserService userService
+@inject IToastCloneService ToastService
+@attribute [Authorize(Roles = "admin")]
+
+<div>
+    @* <button class="rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600"
+                @onclick="@(() => OpenModal("ADD"))">
+            Add
+        </button> *@
+    <Bar Mode="BarMode.Horizontal"
+         Padding="Padding.Is3.FromBottom"
+         Background="Background.Transparent"
+         Breakpoint="Breakpoint.Desktop">
+
+        @* --- Phần bên trái: Tìm kiếm và Lọc --- *@
+        <BarStart>
+            <BarItem>
+                @* Ô Tìm kiếm (Search) *@
+                <Field>
+                    <Addons>
+                        <Addon AddonType="AddonType.Start" Class="cursor-pointer">
+                            <Icon Padding="Padding.Is2" Name="IconName.Search" Clicked="@(() => CallSearchFunction(SearchUserName))" />
+                        </Addon>
+                        <Addon AddonType="AddonType.Body">
+                            <TextEdit Placeholder="Tìm kiếm username..." @bind-Text="SearchUserName" />
+                        </Addon>
+                    </Addons>
+                </Field>
+            </BarItem>
+
+            <BarItem Margin="Margin.Is2.FromStart">
+                @* Lọc theo CategoryName *@
+                @* <Select TValue="string" SelectedValue="selectedCategory">
+                <SelectItem Value="@("")">Lọc theo Danh mục</SelectItem>
+                @foreach (var category in CategoryOptions)
+                {
+                    <SelectItem Value="@category">@category</SelectItem>
+                }
+            </Select> *@
+            </BarItem>
+
+            <BarItem Margin="Margin.Is2.FromStart">
+                @* Lọc theo Giá (Price) *@
+                @* <Select TValue="string" SelectedValue="selectedPriceRange">
+                <SelectItem Value="@("")">Lọc theo Giá</SelectItem>
+                <SelectItem Value="Low">Giá Thấp (&lt; 100K)</SelectItem>
+                <SelectItem Value="Medium">Giá Trung Bình (100K - 500K)</SelectItem>
+                <SelectItem Value="High">Giá Cao (&gt; 500K)</SelectItem>
+            </Select> *@
+            </BarItem>
+        </BarStart>
+
+        @* --- Phần bên phải: Nút Thêm --- *@
+        <BarEnd>
+            <BarItem>
+                <button @onclick="@(() => OpenModal("ADD"))" class="bg-blue-600 p-3 rounded-lg text-white">
+                    <Icon Name="IconName.Add" Class="me-2" /> Thêm User
+                </button>
+            </BarItem>
+        </BarEnd>
+    </Bar>
+    @if (data == null)
+    {
+        <SkeletonTable Rows="5" Columns="@pageSize" />
+    }
+    else
+    {
+        <DataGrid TItem="UserModel"
+                  Data="@(data?.Content ?? new())"
+                  PageSize="@pageSize"
+                  Sortable
+                  Responsive
+                  UseInternalEditing="false">
+            <DataGridColumns>
+                @* ACTIONS *@
+                <DataGridColumn Field="@nameof(UserModel.UserId)" Caption="UserId"></DataGridColumn>
+                @* ACTIONS *@
+                <DataGridColumn Field="@nameof(UserModel.Username)" Caption="User name"></DataGridColumn>
+                @* ACTIONS *@
+                <DataGridColumn Field="@nameof(UserModel.Role)" Caption="Role"></DataGridColumn>
+                @* ACTIONS *@
+                <DataGridColumn Field="@nameof(UserModel.CreatedAt)" Caption="Created At"></DataGridColumn>
+              <Modal @ref="@addModal">
+                <ModalContent Size="ModalSize.Default" Class="p-4">
+                    <div class="header-modal">
+                        <CloseButton @onclick="@(() => CloseModal("ADD"))"/>
+                        <ModalTitle>Add User</ModalTitle>
+                    </div>
+                        <EditForm Model="@newUser" OnValidSubmit="handleAddUser">
+   
+                        <Field>
+                        <FieldLabel>User Name</FieldLabel>
+                                <Validation UsePattern>
+                                    <TextEdit Pattern="@UsernamePattern" Class="custom-input"
+                                              @bind-Text="newUser.Username"
+                                              placeholder="Product Name">
+                                        <ValidationNone>Please enter the name.</ValidationNone>
+                                        <ValidationError>Enter valid name!</ValidationError>
+                                     </TextEdit>
+                                </Validation>
+                              
+                        </Field>
+                        <Field>
+                            <Validation UsePattern>
+                                <FieldLabel>Password</FieldLabel>
+                                      <TextEdit Pattern="@PasswordPattern" Role="TextRole.Password" Placeholder="Password" @bind-Text="@newUser.Password">
+                                <Feedback>
+                                      <ValidationError>Password need atleast 6 charater and doesn't have white space </ValidationError>
+                                </Feedback>
+                                </TextEdit>
+                            </Validation>
+                        </Field>
+                        <Footer class="flex justify-end space-x-2 p-4">
+                            <button
+                                class="rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600"
+                                type="submit">
+                                Save
+                            </button>
+                            <button
+                                class="rounded bg-gray-200 px-4 py-2 text-gray-700 hover:bg-gray-300"
+                                @onclick="@(() => CloseModal("ADD"))">
+                                Cancel
+                            </button>
+                        </Footer>
+                    </EditForm>
+                </ModalContent>
+
+            </Modal>
+            </DataGridColumns>
+                    
+        </DataGrid>
+        <DynamicPagination Count="@totalPages" Selected="@currentPage" OnPageChanged="OnPageChanged" />            
+    }
+    
+</div>
+
+<style>
+    .custom-input {
+        border: 1px solid #e2e8f0;
+        border-radius: 0.375rem;
+        padding: 0.5rem 0.75rem;
+        width: 100%;
+        transition: border-color 0.15s ease-in-out;
+    }
+    
+    .custom-input:focus {
+        border-color: transparent;
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+        transition: box-shadow 0.2s ease-in-out;
+    }
+</style>
+
+@code {
+    private int currentPage = 1;
+    private int pageSize = 5;
+    private int totalPages;
+    private APIResponse<List<UserModel>>? data;
+    private Modal addModal = null!;
+    public UserModel newUser { get; set; } = new UserModel();
+    private const string UsernamePattern = @"^[a-zA-Z][a-zA-Z0-9._-]{4,}$";
+    private const string PasswordPattern = @"^\S{6,}$";
+    private string _searchUserName = "";
+    private CancellationTokenSource _debounceCts = new CancellationTokenSource();
+    // 3. Property công khai (public) để dùng trong @bind-Text
+    public string SearchUserName
+    {
+        get => _searchUserName;
+        set
+        {
+            // Chỉ xử lý nếu giá trị thực sự thay đổi
+            if (_searchUserName != value)
+            {
+                _searchUserName = value;
+
+                // **Bước Debouncing chính:**
+
+                // a. Hủy tác vụ tìm kiếm trước đó (nếu nó vẫn đang chờ)
+                _debounceCts.Cancel();
+
+                // b. Tạo CancellationTokenSource mới cho tác vụ tìm kiếm hiện tại
+                _debounceCts = new CancellationTokenSource();
+
+                // c. Bắt đầu tác vụ tìm kiếm trì hoãn
+                // Ta dùng "_" để bỏ qua cảnh báo vì ta không cần await tác vụ này ngay lập tức.
+                _ = DelayedSearch(_searchUserName, _debounceCts.Token);
+            }
+        }
+    }
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData(1);
+    }
+
+    private async Task DelayedSearch(string searchText, CancellationToken cancellationToken)
+    {
+        try
+        {
+            // Đợi 3000ms (3 giây)
+            await Task.Delay(500, cancellationToken);
+
+            // Nếu việc chờ thành công (tức là không bị hủy bởi tác vụ mới)
+            if (!cancellationToken.IsCancellationRequested)
+            {
+                // Gọi hàm bạn muốn thực hiện
+                await CallSearchFunction(searchText);
+            }
+        }
+        catch (TaskCanceledException)
+        {
+            // Bỏ qua: Điều này xảy ra khi tác vụ bị hủy thành công
+        }
+    }
+
+    private async Task CallSearchFunction(string query)
+    {
+        // Đây là hàm bạn muốn gọi sau 3 giây dừng gõ
+        await LoadData(currentPage, query);
+    }
+
+    private async Task LoadData(int page,string searchUserName="")
+    {
+        // data = await ProductService.GetProductsPageAsyncV1<List<ProductDTO>>(page, pageSize);
+        data = await userService.GetUserPageAsync(page, pageSize, searchUserName);
+        totalPages = data!.Metadata.TotalPages;
+        StateHasChanged();
+    }
+
+    private async Task OnPageChanged(int page)
+    {
+        currentPage = page;
+        await LoadData(currentPage);
+    }
+
+    private void OpenModal(String type,UserModel? user = null)
+    {
+        addModal.Show();
+        newUser.Username = "";
+        newUser.Password = "";
+    }
+
+    private void CloseModal(string type)
+    {
+        // switch (type)
+        // {
+        //     case "ADD":
+        addModal.Hide();
+        //         break;
+        //     case "EDIT":
+        //         editModal.Hide();
+        //         break;
+        // }
+    }
+
+    private async void handleAddUser()
+    {
+        // 1. Kiểm tra Username
+        if (!Regex.IsMatch(newUser.Username, UsernamePattern) || !Regex.IsMatch(newUser.Password, PasswordPattern))
+        {
+            return;
+        }
+
+        // Console.WriteLine("Adding user: " + newUser.Username);
+        // Console.WriteLine("With password: " + newUser.Password);
+
+        // 2. Gọi API để thêm user
+        var userDto = new CreateUserDto
+        {
+            Username = newUser.Username,
+            Password = newUser.Password,
+            Role = "ADMIN" 
+        };
+
+        var result = await userService.CreateUserAsync(userDto);
+        if (result != null && result.isSuccess)
+        {
+            // Thêm thành công, tải lại dữ liệu
+            await LoadData(1);
+            ToastService.ShowToast("User added successfully!", ToastLevel.Success);
+            CloseModal("ADD");
+        }
+        else
+        {
+            // Xử lý lỗi (hiển thị thông báo lỗi, v.v.)
+            // Console.WriteLine("Error adding user: " + result?.message);
+            ToastService.ShowToast("Error adding user: " + result?.message, ToastLevel.Error);
+        }
+    }
+
+}
