@@ -12,8 +12,9 @@ public interface IProductService
     public Task<APIResponse<List<ProductModel>>> GetProductsAsync();
     public Task<APIResponse<List<ProductModel>>> GetProductsPageAsync(int page, int pageSize);
     public Task<APIResponse<List<ProductModel>>> FilterProductAsync(ProductFilterRequest filterRequest, int page, int pageSize);
-    public Task<APIResponse<T>> GetProductsPageAsyncV1<T>(int page, int pageSize) where T : class;
-    public Task<APIResponse<T>> AddProduct<T>(T product) where T : class;
-    public Task<APIResponse<T>> EditProduct<T>(int id, T product) where T : class;
+    public Task<APIResponse<T>> SearchAsync<T>(ProductFilterDTO filter, int page, int pageSize) where T : class;
+    public Task<APIResponse<T>> AddAsync<T>(T product) where T : class;
+    public Task<APIResponse<T>> EditAsync<T>(int id, T product) where T : class;
+    public Task<APIResponse<T>> DeleteAsync<T>(int id) where T : class;
     public Task<APIResponse<T>> UploadImage<T>(IBrowserFile file) where T : class;
 }
