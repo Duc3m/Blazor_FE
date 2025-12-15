@@ -28,7 +28,7 @@ public class UserContextService : IUserContextService
         return user.Identity?.IsAuthenticated == true;
     }
 
-    public async Task<int> GetUserIdAsync()
+    public async Task<int> GetCurrentUserIdAsync()
     {
         var user = await GetCurrentUserAsync();
         if (user.Identity?.IsAuthenticated == true)
@@ -42,9 +42,9 @@ public class UserContextService : IUserContextService
         return 0;
     }
 
-    public async Task<CustomerModel> GetCustomerByUserIdAsync() 
+    public async Task<CustomerModel> GetCurrentCustomerAsync() 
     {
-        int userId = await GetUserIdAsync();
+        int userId = await GetCurrentUserIdAsync();
         var url = $"api/v1/Customer/user/{userId}";
         var response = await _httpClient.GetFromJsonAsync<APIResponse<CustomerModel>>(url);
         return response.Content;

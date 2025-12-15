@@ -22,7 +22,7 @@
                                     <p class="text-xs text-gray-500 mt-0.5">.98 / lb</p>
                                 </div>
                                 <div class="text-right">
-                                    <p class="text-sm font-bold text-gray-900">@item.Price.ToVnd() đ</p>
+                                    <p class="text-sm font-bold text-gray-900">@item.Price.ToVnd()</p>
                                 </div>
                             </div>
                             <div class="text-xs text-gray-700 mt-1">Số lượng: @item.Quantity</div>
@@ -35,18 +35,18 @@
         <div class="bg-gray-50 p-5 space-y-3 mt-2 border-t border-gray-100">
             <div class="flex justify-between text-sm text-gray-600">
                 <span>Tổng tiền hàng</span>
-                <span class="font-semibold text-gray-900">@(GetCartTotal().ToVnd()) đ</span>
+                <span class="font-semibold text-gray-900">@(GetCartTotal().ToVnd())</span>
             </div>
             <div class="flex justify-between text-sm text-gray-600">
                 <span class="flex items-center gap-1">
                     Khuyến mãi
                     <span class="inline-flex items-center justify-center w-4 h-4 rounded-full border border-gray-400 text-[10px] text-gray-500 cursor-help" title="Fee details">i</span>
                 </span>
-                <span class="font-semibold text-gray-900">@discountAmount đ</span>
+                <span class="font-semibold text-gray-900">@discountAmount.ToVnd()</span>
             </div>
             <div class="flex justify-between text-base font-bold text-gray-900 pt-3 border-t border-gray-200">
                 <span>Tổng hóa đơn</span>
-                <span>@( (GetCartTotal() - discountAmount).ToVnd()) đ</span>
+                <span>@( (GetCartTotal() - discountAmount).ToVnd())</span>
             </div>
         </div>
     </div>

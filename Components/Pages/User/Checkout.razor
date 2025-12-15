@@ -20,9 +20,12 @@
                     </span>
                     <h2 class="text-lg font-bold text-gray-800">Địa chỉ giao hàng</h2>
                 </div>
-                <button class="text-blue-600 border border-blue-600 px-4 py-1.5 rounded text-sm font-semibold hover:bg-blue-50 transition">
-                    Thêm địa chỉ mới
-                </button>
+                <span class="text-lg-center font-semibold">
+                    @if(currentCustomer != null)
+                    {
+                        @currentCustomer.Address
+                    }
+                </span>
             </div>
 
             <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
@@ -88,7 +91,8 @@
 </div>
 
 @code {
-    private int userId;
+    private int currentUserId;
+    private CustomerModel currentCustomer;
     private string currentPayment = "vnpay";
 
     private List<CartItemModel>? cartItems;
@@ -107,7 +111,8 @@
     {
         if (firstRender)
         {
-            userId = await userContextService.GetUserIdAsync();
+            currentUserId = await userContextService.GetCurrentUserIdAsync();
+            currentCustomer = await userContextService.GetCurrentCustomerAsync();
             cartItems = await cartService.GetCartItemsAsync();
             StateHasChanged();
         }
@@ -128,6 +133,12 @@
 
     public async Task VNPayCheckout()
     {
+        if(currentCustomer.Name == null || currentCustomer.Phone == null || currentCustomer.Address == null)
+        {
+            ToastService.ShowToast("Vui lòng cập nhật thông tin khách hàng trước khi thanh toán!", ToastLevel.Warning);
+            return;
+        }
+
         List<OrderItemDTO> orderItems = new List<OrderItemDTO>();
         if(cartItems != null && cartItems.Count > 0)
         {
@@ -140,10 +151,11 @@
                 });
             }
         };
+        currentCustomer = await userContextService.GetCurrentCustomerAsync();
         OrderDTO orderDTO = new OrderDTO
         {
-            UserId = userId,
-            CustomerId = userId,
+            UserId = currentUserId,
+            CustomerId = currentCustomer.CustomerId,
             PaymentMethod = "bank_transfer",
             Items = orderItems
         };
