@@ -1,7 +1,8 @@
-﻿using Blazor_FE.Models;
+﻿using System.Globalization;
+using Blazor_FE.Models;
 using Blazor_FE.Models.Product;
-using Blazor_FE.Services.Products.dtos;
 using Blazor_FE.Services.Base;
+using Blazor_FE.Services.Products.dtos;
 using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.AspNetCore.WebUtilities;
 
@@ -10,7 +11,7 @@ namespace Blazor_FE.Services.Products;
 
 public class ProductService : IProductService
 {
-    private readonly HttpClient _httpClient;
+      private readonly HttpClient _httpClient;
 
     public ProductService(
         HttpClient httpClient)
@@ -93,6 +94,77 @@ public class ProductService : IProductService
         }
     }
 
+    public async Task<APIResponse<T>> SearchAsync<T>(ProductFilterDTO filter, int page, int pageSize) where T : class
+    {
+        try
+        {
+            var queryParams = new Dictionary<string, string>
+            {
+                ["pageNumber"] = page.ToString(),
+                ["pageSize"] = pageSize.ToString()
+            };
+            
+            if (!string.IsNullOrEmpty(filter.ProductName)) queryParams["productName"] = filter.ProductName;
+            if (filter.MaxPrice.HasValue && filter.MinPrice.HasValue && 
+                filter.MaxPrice.Value > 0 && filter.MinPrice.Value > 0)
+            {
+                queryParams["maxPrice"] = filter.MaxPrice.Value.ToString(CultureInfo.InvariantCulture);
+                queryParams["minPrice"] = filter.MinPrice.Value.ToString(CultureInfo.InvariantCulture);
+            }
+            if (!string.IsNullOrEmpty(filter.Category)) queryParams["category"] = filter.Category;
+
+            var url = QueryHelpers.AddQueryString("api/v1/product/search", queryParams);
+            var res = await _httpClient.GetFromJsonAsync<APIResponse<T>>(url);
+            return res ?? throw new Exception("response bị null");;
+        }
+        catch (Exception ex)
+        {
+            throw new Exception(ex.Message);
+        }
+    }
+
+    public async Task<APIResponse<T>> AddAsync<T>(T product) where T : class
+    {
+        try
+        {            
+            var req = await _httpClient.PostAsJsonAsync($"api/v1/product", product);
+            var res = await req.Content.ReadFromJsonAsync<APIResponse<T>>();
+            return res ?? throw new Exception("response bị null");
+        }
+        catch (Exception ex)
+        {
+            throw new Exception(ex.Message);
+        }
+    }
+
+    public async Task<APIResponse<T>> EditAsync<T>(int id, T product) where T : class
+    {
+        try
+        {
+            var req = await _httpClient.PutAsJsonAsync($"api/v1/product/{id}", product);
+            var res = await req.Content.ReadFromJsonAsync<APIResponse<T>>();
+            return res ?? throw new Exception("response bị null");
+        }
+        catch (Exception ex)
+        {
+            throw new Exception(ex.Message);
+        }
+    }
+
+    public async Task<APIResponse<T>> DeleteAsync<T>(int id) where T : class
+    {
+        try
+        {
+            var res = await _httpClient.DeleteAsync($"api/v1/product/{id}");
+            var result = await res.Content.ReadFromJsonAsync<APIResponse<T>>();
+            return result ?? throw new Exception("Response bi null");
+        }
+        catch (Exception ex)
+        {
+            throw new Exception(ex.Message);
+        }
+    }
+
     public async Task<APIResponse<T>> GetProductsPageAsyncV1<T>(int page, int pageSize) where T : class
     {
         try
@@ -106,38 +178,6 @@ public class ProductService : IProductService
             var url = QueryHelpers.AddQueryString("api/v1/product", queryParams);
             var res = await _httpClient.GetFromJsonAsync<APIResponse<T>>(url);
             if (res == null) throw new Exception("response bị null");
-            return res;
-        }
-        catch (Exception ex)
-        {
-            throw new Exception(ex.Message);
-        }
-    }
-
-    public async Task<APIResponse<T>> AddProduct<T>(T product) where T : class
-    {
-        try
-        {
-            var req = await _httpClient.PostAsJsonAsync($"api/v1/product", product);
-            var res = await req.Content.ReadFromJsonAsync<APIResponse<T>>();
-            if (res == null) throw new Exception("response bị null");
-
-            return res;
-        }
-        catch (Exception ex)
-        {
-            throw new Exception(ex.Message);
-        }
-    }
-
-    public async Task<APIResponse<T>> EditProduct<T>(int id, T product) where T : class
-    {
-        try
-        {
-            var req = await _httpClient.PutAsJsonAsync($"api/v1/product/{id}", product);
-            var res = await req.Content.ReadFromJsonAsync<APIResponse<T>>();
-            if (res == null) throw new Exception("response bị null");
-
             return res;
         }
         catch (Exception ex)

@@ -1,11 +1,13 @@
 ﻿@page "/admin/products"
-@using Blazor_FE.Core
 @using Blazor_FE.Services.Base
 @using Blazor_FE.Services.Products.dtos
 @using ProductDTO = Blazor_FE.Models.ProductModel
-@* @using Microsoft.CodeAnalysis *@
+@using Microsoft.CodeAnalysis
 @using Blazorise.DataGrid
 @inject IProductService ProductService
+@inject ICategoryService CategoryService
+@inject NavigationManager NavigationManager
+@inject IToastCloneService ToastService
 @attribute [Authorize(Roles = "admin")]
 
 <div>
@@ -13,29 +15,66 @@
     {
         <SkeletonTable Rows="5" Columns="8" />
     }
-    <button
-        class="rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600"
-        @onclick="@(() => OpenModal("ADD"))">
-        Add
-    </button>
+    <div class="flex gap-2 mb-4 items-center">
+        <button
+            class="rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600 whitespace-nowrap"
+            @onclick="@(() => OpenModal("ADD"))">
+            Thêm sản phẩm
+        </button>
+        <div class="relative">
+            <input
+                @bind="searchQuery.ProductName"
+                class="border rounded px-3 py-1.5 w-40"
+                placeholder="Tên sản phẩm..."/>
+        </div>
+        @* PRICE *@
+        <div class="relative">
+            <input
+                @bind="searchQuery.MinPrice"
+                class="border rounded px-3 py-1.5 w-40"
+                placeholder="Giá thấp nhất..."/>
+        </div>
+        <div class="relative">
+            <input
+                @bind="searchQuery.MaxPrice"
+                class="border rounded px-3 py-1.5 w-40"
+                placeholder="Giá cao nhất..."/>
+        </div>
+        <div class="relative">
+            <select
+                id="category"
+                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                @bind="searchQuery.Category">
+                <option value="" disabled selected>Chọn loại</option>
+                @if (categories?.Content != null)
+                {
+                    @foreach (var category in categories.Content)
+                    {
+                        <option value="@category.CategoryId">@category.CategoryName</option>
+                    }
+                }
+            </select>
+        </div>
+        @**@
+        <button
+            class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded whitespace-nowrap"
+            @onclick="SearchProducts">
+            Search
+        </button>
+    </div>
     <DataGrid
-        TItem="ProductDTO"
+        TItem="ProductDetailResponseDTO"
         Data="@(data?.Content ?? new())"
         PageSize="@pageSize"
         Sortable
         Responsive
-        UseInternalEditing="false">
+        UseInternalEditing="false"
+    >
         <DataGridColumns>
             @* ACTIONS *@
-            <DataGridColumn Field="@nameof(ProductDTO.ProductId)" Caption="ID" Editable="false"></DataGridColumn>
+            <DataGridColumn Field="@nameof(ProductDetailResponseDTO.ProductId)" Caption="ID" Editable="false"></DataGridColumn>
             @* ACTIONS *@
-            <DataGridColumn Field="@nameof(ProductDTO.ProductName)" Caption="Product Name"></DataGridColumn>
-            @* ACTIONS *@
-            <DataGridColumn Field="@nameof(ProductDTO.Price)" Caption="Price"></DataGridColumn>
-            @* ACTIONS *@
-            <DataGridColumn Field="@nameof(ProductDTO.Unit)" Caption="Unit"></DataGridColumn>
-            @* ACTIONS *@
-            <DataGridColumn Field="@nameof(ProductDTO.ProductImg)" Caption="Image">
+            <DataGridColumn Field="@nameof(ProductDetailResponseDTO.ProductImg)" Caption="Image">
                 <DisplayTemplate>
                     @{
                         var url = context?.ProductImg;
@@ -51,148 +90,302 @@
                 </DisplayTemplate>
             </DataGridColumn>
             @* ACTIONS *@
+            <DataGridColumn Field="@nameof(ProductDTO.ProductName)" Caption="Product Name"></DataGridColumn>
+            @* ACTIONS *@
+            <DataGridColumn Field="@nameof(ProductDTO.Price)" Caption="Price"></DataGridColumn>
+            @* ACTIONS *@
             <DataGridColumn Caption="Actions">
                 <DisplayTemplate Context="context">
                     <div class="flex gap-2">
                         <button
                             class="rounded bg-gray-500 px-4 py-2 text-white hover:bg-gray-600"
+                            @onclick="@(() => OpenModal("VIEW", context))"
                             @onclick:preventDefault
                         >
-                            View
+                            Xem
                         </button>
                         <button
                             class="rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600"
                             @onclick:preventDefault
                             @onclick="@(() => OpenModal("EDIT", context))">
-                            Edit
+                            Sửa 
                         </button>
                         <button
                             class="rounded bg-red-500 px-4 py-2 text-white hover:bg-red-600"
+                            @onclick="@(() => ShowDeleteConfirmation(context))"
                             @onclick:preventDefault>
-                            Delete
+                            Xóa
                         </button>
                     </div>
                 </DisplayTemplate>
             </DataGridColumn>
-            @* ADD MODAL *@
-            @{
-                var editProduct = selectedProduct.value;
-            }
-            <Modal @ref="@addModal">
-                <ModalContent Size="ModalSize.Default" Class="p-4">
-                    <div class="header-modal">
-                        <CloseButton @onclick="@(() => CloseModal("ADD"))"/>
-                        <ModalTitle>Add product</ModalTitle>
-                    </div>
-                    @* EDIT FORM *@
-                    <EditForm Model="@newProduct" OnValidSubmit="handleAddProduct">
-                        <Field>
-                            <FieldLabel>Product Name</FieldLabel>
-                            <InputText
-                                Class="custom-input"
-                                @bind-Value="newProduct.ProductName" 
-                                placeholder="Product Name"
-                            />
-                        </Field>
-                        <Field>
-                            <FieldLabel>Barcode</FieldLabel>
-                            <InputText 
-                                Class="custom-input" 
-                                @bind-Value="newProduct.Barcode" 
-                                placeholder="Barcode"
-                            />
-                        </Field>
-                        <Field>
-                            <FieldLabel>Price</FieldLabel>
-                            <InputNumber
-                                TValue="decimal"
-                                @bind-Value="newProduct.Price"
-                                placeholder="Price"
-                                Class="custom-input"
-                            />
-                        </Field>
-                        <Field>
-                            <FieldLabel>Unit</FieldLabel>
-                            <InputText 
-                                Class="custom-input" 
-                                @bind-Value="newProduct.Unit" 
-                                placeholder="Unit"
-                            />
-                        </Field>
-                        <Field>
-                            <FieldLabel>Image</FieldLabel>
-                            <InputFile
-                                OnChange="OnImageChanged" 
-                                accept="image/*"
-                            />
-                            <div class="mt-2">
-                                <img
-                                    class=""
-                                    src="@newProduct.ProductImg"/>
-                            </div>
-                        </Field>
-                        <Footer class="flex justify-end space-x-2 p-4">
-                            <button
-                                class="rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600"
-                                type="submit">
-                                Save
-                            </button>
-                            <button
-                                class="rounded bg-gray-200 px-4 py-2 text-gray-700 hover:bg-gray-300"
-                                @onclick="@(() => CloseModal("ADD"))">
-                                Cancel
-                            </button>
-                        </Footer>
-                    </EditForm>
-                </ModalContent>
-            </Modal>
-            @*  EDIT MODAL *@
-            <Modal @ref="@editModal">
-                <ModalContent Size="ModalSize.Default" Class="p-4">
-                    <div class="header-modal">
-                        <CloseButton @onclick="@(() => CloseModal("EDIT"))"/>
-                        <ModalTitle>Edit</ModalTitle>
-                    </div>
-                    @* EDIT FORM *@
-                    <EditForm Model="@editProduct" OnValidSubmit="handleEditProduct">
-                        <Field>
-                            <FieldLabel>Product Name</FieldLabel>
-                            <TextEdit @bind-Text="@editProduct!.ProductName"/>
-                        </Field>
-                        <Field>
-                            <FieldLabel>Price (VND)</FieldLabel>
-                            <NumericEdit TValue="decimal" @bind-Value="editProduct!.Price"/>
-                        </Field>
-                        <Field>
-                            <FieldLabel>Unit</FieldLabel>
-                            <TextEdit @bind-Text="@editProduct!.Unit"/>
-                        </Field>
-                        <Field>
-                            <FieldLabel>Image</FieldLabel>
-                            @if (!string.IsNullOrEmpty(editProduct?.ProductImg))
-                            {
-                                <div class="mt-2">
-                                    <img src="@imagePreviews.FirstOrDefault()" alt="image" style="max-width: 200px; max-height: 200px;" class="mt-2" />
-                                </div>
-                            }
-                        </Field>
-                        <Footer class="flex justify-end space-x-2 p-4">
-                            <button
-                                class="rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600"
-                                type="submit">
-                                Save
-                            </button>
-                            <button
-                                class="rounded bg-gray-200 px-4 py-2 text-gray-700 hover:bg-gray-300"
-                                @onclick="@(() => CloseModal("EDIT"))">
-                                Cancel
-                            </button>
-                        </Footer>
-                    </EditForm>
-                </ModalContent>
-            </Modal>
         </DataGridColumns>
     </DataGrid>
+    @* VIEW MODAL *@
+    <Modal @ref="@viewModal">
+        <ModalContent Size="ModalSize.Default" Class="p-4 max-h-[90vh] overflow-y-auto">
+            <div class="header-modal">
+                <CloseButton @onclick="@(() => CloseModal("VIEW"))"/>
+                <ModalTitle>Chi tiết sản phẩm</ModalTitle>
+            </div>
+
+            <div class="space-y-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <h3 class="font-semibold text-gray-600">Id</h3>
+                        <p class="mt-1">@viewProduct.ProductId</p>
+                    </div>
+                    <div>
+                        <h3 class="font-semibold text-gray-600">Tên sản phẩm</h3>
+                        <p class="mt-1">@viewProduct.ProductName</p>
+                    </div>
+                    <div>
+                        <h3 class="font-semibold text-gray-600">Barcode</h3>
+                        <p class="mt-1">@viewProduct.Barcode</p>
+                    </div>
+                    <div>
+                        <h3 class="font-semibold text-gray-600">Gía</h3>
+                        <p class="mt-1">@viewProduct.Price.ToString("C")</p>
+                    </div>
+                    <div>
+                        <h3 class="font-semibold text-gray-600">Đơn vị</h3>
+                        <p class="mt-1">@viewProduct.Unit</p>
+                    </div>
+                    <div>
+                        <h3 class="font-semibold text-gray-600">Nhà cung cấp</h3>
+                        <p class="mt-1">@viewProduct.SupplierName</p>
+                    </div>
+                    <div>
+                        <h3 class="font-semibold text-gray-600">Loại</h3>
+                        <p class="mt-1">@viewProduct.CategoryName</p>
+                    </div>
+                </div>
+                @if (!string.IsNullOrEmpty(viewProduct.ProductImg))
+                {
+                <div class="mt-4">
+                    <h3 class="font-semibold text-gray-600 mb-2">Ảnh</h3>
+                    <img src="@viewProduct.ProductImg"
+                         alt="Product Image"
+                         class="max-w-full h-auto rounded-lg shadow-sm border border-gray-200" />
+                </div>
+                }
+            </div>
+
+            <Footer class="flex justify-end space-x-2 p-4 border-t mt-4">
+                <button
+                    class="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition-colors"
+                    @onclick="@(() => CloseModal("VIEW"))"
+                    @onclick:preventDefault>
+                    Close
+                </button>
+            </Footer>
+        </ModalContent>
+    </Modal>
+    @* ADD MODAL *@
+    <Modal @ref="@addModal">
+        <ModalContent Size="ModalSize.Default" Class="p-4 max-h-[90vh] overflow-y-auto">
+            <div class="header-modal">
+                <CloseButton @onclick="@(() => CloseModal("ADD"))"/>
+                <ModalTitle>Add product</ModalTitle>
+            </div>
+            @* ADD FORM *@
+            <EditForm Model="@newProduct" OnValidSubmit="handleAddProduct">
+                <Field>
+                    <FieldLabel>Product Name</FieldLabel>
+                    <InputText
+                        Class="custom-input"
+                        @bind-Value="newProduct.ProductName"
+                        placeholder="Product Name"
+                    />
+                </Field>
+                <Field>
+                    <FieldLabel>Barcode</FieldLabel>
+                    <InputText
+                        Class="custom-input"
+                        @bind-Value="newProduct.Barcode"
+                        placeholder="Barcode"
+                    />
+                </Field>
+                <Field>
+                    <FieldLabel>Price</FieldLabel>
+                    <InputNumber
+                        TValue="decimal"
+                        @bind-Value="newProduct.Price"
+                        placeholder="Price"
+                        Class="custom-input"
+                    />
+                </Field>
+                <Field>
+                    <FieldLabel>Unit</FieldLabel>
+                    <InputText
+                        Class="custom-input"
+                        @bind-Value="newProduct.Unit"
+                        placeholder="Unit"
+                    />
+                </Field>
+                @* CATEGORY FORM *@
+                <DataGrid
+                    TItem="CategoryModel"
+                    Data="@(categories?.Content ?? new())"
+                    Responsive
+                    VirtualizeOptions="@(new() { DataGridHeight = "250px" })"
+                    @bind-SelectedRow="@selectedCategory"
+                    SelectedRowStyling="@OnSelectedRowStyling"
+                >
+                    <DataGridColumns>
+                        @* ACTIONS *@
+                        <DataGridColumn Field="@nameof(CategoryModel.CategoryId)" Caption="ID" Editable="false"></DataGridColumn>
+                        @* ACTIONS *@
+                        <DataGridColumn Field="@nameof(CategoryModel.CategoryName)" Caption="Category Name" Editable="false"></DataGridColumn>
+                    </DataGridColumns>
+                </DataGrid>
+                @selectedCategory.CategoryId
+                @* SUPPLIER FORM *@
+                @* IMAGE *@
+                <Field>
+                    <FieldLabel>IMAGE</FieldLabel>
+                    <InputFile
+                        OnChange="OnImageChanged"
+                        accept="image/*"
+                    />
+                    <div class="mt-2">
+                        <img
+                            class=""
+                            src="@imagePreviews.FirstOrDefault()"/>
+                    </div>
+                </Field>
+                <Footer class="flex justify-end space-x-2 p-4">
+                    <button
+                        class="rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600"
+                        type="submit"
+                        >
+                        Save
+                    </button>
+                    <button
+                        class="rounded bg-gray-200 px-4 py-2 text-gray-700 hover:bg-gray-300"
+                        @onclick="@(() => CloseModal("ADD"))"
+                        @onclick:preventDefault>
+                        Cancel
+                    </button>
+                </Footer>
+            </EditForm>
+        </ModalContent>
+    </Modal>
+    @*  EDIT MODAL *@
+    <Modal @ref="@editModal">
+        <ModalContent Size="ModalSize.Default" Class="p-4 max-h-[90vh] overflow-y-auto">
+            <div class="header-modal">
+                <CloseButton @onclick="@(() => CloseModal("EDIT"))"/>
+                <ModalTitle>Edit</ModalTitle>
+            </div>
+            @* EDIT FORM *@
+            <EditForm Model="@editProduct" OnValidSubmit="handleEditProduct">
+                <Field>
+                    <FieldLabel>Product Name</FieldLabel>
+                    <InputText
+                        Class="custom-input"
+                        @bind-Value="editProduct.ProductName"
+                        placeholder="Product Name"
+                    />
+                </Field>
+                <Field>
+                    <FieldLabel>Barcode</FieldLabel>
+                    <InputText
+                        Class="custom-input"
+                        @bind-Value="editProduct.Barcode"
+                        placeholder="Barcode"
+                    />
+                </Field>
+                <Field>
+                    <FieldLabel>Price</FieldLabel>
+                    <InputNumber
+                        TValue="decimal"
+                        @bind-Value="editProduct.Price"
+                        placeholder="Price"
+                        Class="custom-input"
+                    />
+                </Field>
+                <Field>
+                    <FieldLabel>Unit</FieldLabel>
+                    <InputText
+                        Class="custom-input"
+                        @bind-Value="editProduct.Unit"
+                        placeholder="Unit"
+                    />
+                </Field>
+                @* CATEGORY FORM *@
+                <DataGrid
+                    TItem="CategoryModel"
+                    Data="@(categories?.Content ?? new())"
+                    Responsive
+                    VirtualizeOptions="@(new() { DataGridHeight = "250px" })"
+                    @bind-SelectedRow="@selectedCategory"
+                    SelectedRowStyling="@OnSelectedRowStyling"
+                >
+                    <DataGridColumns>
+                        @* ACTIONS *@
+                        <DataGridColumn Field="@nameof(CategoryModel.CategoryId)" Caption="ID" Editable="false"></DataGridColumn>
+                        @* ACTIONS *@
+                        <DataGridColumn Field="@nameof(CategoryModel.CategoryName)" Caption="Category Name" Editable="false"></DataGridColumn>
+                    </DataGridColumns>
+                </DataGrid>
+                @selectedCategory.CategoryId
+                @* SUPPLIER FORM *@
+                @* IMAGE *@
+                <Field>
+                    <FieldLabel>IMAGE</FieldLabel>
+                    <InputFile
+                        OnChange="OnImageChanged"
+                        accept="image/*"
+                    />
+                    <div class="mt-2">
+                        <img
+                            class=""
+                            src="@imagePreviews.FirstOrDefault()"/>
+                    </div>
+                </Field>
+                <Footer class="flex justify-end space-x-2 p-4">
+                    <button
+                        class="rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600"
+                        type="submit">
+                        Lưu
+                    </button>
+                    <button
+                        class="rounded bg-gray-200 px-4 py-2 text-gray-700 hover:bg-gray-300"
+                        @onclick="@(() => CloseModal("EDIT"))"
+                        @onclick:preventDefault>
+                        Thoát
+                    </button>
+                </Footer>
+            </EditForm>
+        </ModalContent>
+    </Modal>
+    @* DELETE *@
+    <Modal @ref="@deleteConfirmModal">
+        <ModalContent>
+            <ModalHeader>
+                <ModalTitle>Xác nhận xóa</ModalTitle>
+                <CloseButton @onclick="() => deleteConfirmModal.Hide()" />
+            </ModalHeader>
+            <ModalBody>
+                Bạn có chắc chắn muốn xóa sản phẩm này?
+            </ModalBody>
+            <ModalFooter>
+                <button
+                    class="rounded bg-gray-200 px-4 py-2 text-gray-700 hover:bg-gray-300"
+                    @onclick="@(() => CloseModal("DELETE"))"
+                    @onclick:preventDefault>
+                    Thoát
+                </button>
+                <button
+                    class="rounded bg-gray-200 px-4 py-2 text-gray-700 hover:bg-gray-300"
+                    @onclick="@(() => handleDelete(deleteProduct))"
+                    @onclick:preventDefault>
+                    Xóa
+                </button>
+            </ModalFooter>
+        </ModalContent>
+    </Modal>
     <CustomPagination
         CurrentPage="@currentPage"
         TotalPages="@totalPages"
@@ -215,27 +408,84 @@
         box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
         transition: box-shadow 0.2s ease-in-out;
     }
+    
+    .selected-row-style {
+        background-color: #9fc4f8 !important;
+        font-weight: bold !important;
+    }
 </style>
 
 @code {
     private int currentPage = 1;
     private int pageSize = 5;
     private int totalPages;
-    private State<ProductDTO> selectedProduct;
-    private APIResponse<List<ProductDTO>>? data;
-    private Modal editModal = null!;
-    private Modal addModal = null!;
+    private APIResponse<List<ProductDetailResponseDTO>>? data;
+    
+    private Modal editModal, viewModal, addModal, deleteConfirmModal = null!;
+    
+    private APIResponse<List<CategoryModel>> categories = new();
+    private APIResponse<List<SupplierModel>> suppliers = new();
+    
+    private ProductFilterDTO searchQuery = new();
+    
+    private ProductRequestDTO newProduct = new();
+    private CategoryModel? selectedCategory = new();
+    private SupplierModel? selectedSupplier = new();
+    
+    private ProductDTO editProduct = new();
+    private ProductDetailResponseDTO viewProduct = new();
+    private ProductDetailResponseDTO deleteProduct = new();
+
+    private async Task SearchProducts()
+    {
+        var uri = new Uri(NavigationManager.Uri);
+        var baseUri = uri.GetLeftPart(UriPartial.Path);
+
+        var parameters = new Dictionary<string, object?>();
+        
+        if (!string.IsNullOrWhiteSpace(searchQuery.ProductName))
+        {
+            parameters["productName"] = searchQuery.ProductName;
+        }
+        
+        if ((searchQuery.MaxPrice!.Value != 0 && searchQuery.MinPrice!.Value != 0) && (searchQuery.MaxPrice!.Value >= searchQuery.MinPrice!.Value))
+        {
+            parameters["minPrice"] = searchQuery.MinPrice.Value;
+            parameters["maxPrice"] = searchQuery.MaxPrice.Value;
+        }
+
+        if (!string.IsNullOrWhiteSpace(searchQuery.Category))
+        {
+            parameters["category"] = searchQuery.Category;
+        }
+
+        var url = NavigationManager.GetUriWithQueryParameters(baseUri, parameters);
+
+        NavigationManager.NavigateTo(url, replace: true);
+
+        currentPage = 1;
+        await LoadData(currentPage);
+    }
+    // -- //
     
     protected override async Task OnInitializedAsync()
     {
-        selectedProduct = new State<ProductDTO>(new ProductDTO(), StateHasChanged);
+        var uri = new Uri(NavigationManager.Uri);
+        var baseUri = uri.GetLeftPart(UriPartial.Path);
+        if (!string.IsNullOrEmpty(uri.Query))
+        {
+            NavigationManager.NavigateTo(baseUri, replace: true);
+        }
+        searchQuery.MinPrice = 0;
+        searchQuery.MaxPrice = 0;
         await LoadData(currentPage);
     }
 
     private async Task LoadData(int page)
     {
-        // data = await ProductService.GetProductsPageAsyncV1<List<ProductDTO>>(page, pageSize);
-        data = await ProductService.GetProductsPageAsync(page, pageSize);
+        categories = await CategoryService.GetCategoriesAsync();
+        // suppliers = await SupplierService.GetAllAsync<List<SupplierModel>>();
+        data = await ProductService.SearchAsync<List<ProductDetailResponseDTO>>(searchQuery, page, pageSize);
         totalPages = data!.Metadata.TotalPages;
         StateHasChanged();
     }
@@ -246,26 +496,37 @@
         await LoadData(currentPage);
     }
     
-    private void OpenModal(String type,ProductDTO? product = null)
+    private void OpenModal(String type,ProductDetailResponseDTO? product = null)
     {
-        switch (type)
+        if (type == "ADD")
         {
-            case "ADD":
-                addModal.Show();
-                break;
-            case "EDIT":
-                selectedProduct.Set(new ProductDTO
-                {
-                    ProductId = product.ProductId,
-                    ProductName = product.ProductName,
-                    Price = product.Price,
-                    Barcode = product.Barcode,
-                    Unit = product.Unit,
-                    ProductImg = product.ProductImg,
-                    SupplierId = product.SupplierId
-                });
-                editModal.Show();
-                break;
+            newProduct = new();
+            addModal.Show();
+        }
+
+        if (type == "EDIT")
+        {
+            editProduct = new ProductDTO
+            {
+                ProductId = product.ProductId,
+                ProductName = product.ProductName,
+                Price = product.Price,
+                Barcode = product.Barcode,
+                Unit = product.Unit,
+                ProductImg = product.ProductImg,
+                CategoryId = product.CategoryId,
+                SupplierId = null
+            };
+            selectedCategory = SetSelectedCategory(editProduct);
+            // selectedSupplier = SetSelectedSupplier(editProduct);
+            
+            editModal.Show();
+        }
+        
+        if (type == "VIEW")
+        {
+            viewProduct = product;
+            viewModal.Show();
         }
     }
     
@@ -273,15 +534,21 @@
     {
         switch (type)
         {
+            case "VIEW":
+                viewModal.Hide();
+                break;
             case "ADD":
                 addModal.Hide();
                 break;
             case "EDIT":
                 editModal.Hide();
                 break;
+            case "DELETE":
+                deleteConfirmModal.Hide();
+                break;
         }
     }
-    
+    @* *@
     private List<IBrowserFile> selectedFiles = new();
     private List<String> imagePreviews = new();
     private async Task OnImageChanged(InputFileChangeEventArgs e)
@@ -299,9 +566,29 @@
             imagePreviews.Add(imageBase64);
         }
     }
+    @* HANDLE SELECTED *@
+    private CategoryModel? SetSelectedCategory(ProductDTO product)
+    {
+        if (product?.CategoryId == 0 || categories?.Content == null)
+            return new CategoryModel();
+        
+        return categories.Content.FirstOrDefault(x => x.CategoryId == product.CategoryId);
+    }
+    
+    // private SupplierModel? SetSelectedSupplier(ProductDTO product)
+    // {
+    //     if (product?.SupplierId == 0 || suppliers?.Content == null)
+    //         return new SupplierModel();
+    //     
+    //     return suppliers.Content.FirstOrDefault(x => x.SupplierId == product.SupplierId);
+    // }
+    
+    private void OnSelectedRowStyling(object item, DataGridRowStyling styling)
+    {
+        styling.Class = "selected-row-style";
+    }
     
     @* HANDLE CRUD *@
-    private ProductRequestDTO newProduct = new();
     private async Task handleAddProduct()
     {
         try
@@ -324,56 +611,99 @@
                 Console.WriteLine("No image");
             }
             
-            Console.WriteLine(newProduct.ProductName);
-            Console.WriteLine(newProduct.Barcode);
-            Console.WriteLine(newProduct.Price);
-            Console.WriteLine(newProduct.Unit);
-            var response = await ProductService.AddProduct(newProduct);
+            var response = await ProductService.AddAsync(newProduct);
             
             if (response.StatusCode != 200)
             {
-                throw new Exception(response.Message);
+                ToastService.ShowToast(response.Message, ToastLevel.Error);
+                return;
             }
+            
+            ToastService.ShowToast(response.Message);
             
             newProduct = new();
             selectedFiles.Clear();
             imagePreviews.Clear();
             await addModal.Hide();
-            await LoadData(totalPages);
+            currentPage = 1;
+            await LoadData(currentPage);
         }
         catch (Exception ex)
         {
-            // Log the error or show a user-friendly message
-            Console.WriteLine($"Error adding product: {ex.Message}");
-            throw; // Re-throw to let the form handle the error
+            throw new Exception(ex.Message);
         }
     }
-    
     private async Task handleEditProduct()
     {
+        Console.WriteLine("edit product");
         try
         {
-            if (selectedProduct?.value == null) return;
-
-            var request = new ProductRequestDTO
+            Console.WriteLine("Edit");
+            
+            editProduct.CategoryId = selectedCategory!.CategoryId;
+            
+            if (selectedFiles.Any())
             {
-                ProductName = selectedProduct.value.ProductName,
-                Price = selectedProduct.value.Price,
-                Barcode = selectedProduct.value.Barcode!,
-                Unit = selectedProduct.value.Unit!,
-                ProductImg = selectedProduct.value.ProductImg,
-                SupplierId = selectedProduct.value.SupplierId
-            };
+                var resUpload = await ProductService.UploadImage<string>(selectedFiles.FirstOrDefault()!);
+                if (resUpload.StatusCode != 200)
+                {
+                    throw new Exception(resUpload.Message);
+                }
 
-            var response = await ProductService.EditProduct(selectedProduct.value.ProductId, request);
+                editProduct.ProductImg = resUpload.Content;
+            }
+            
+            if (String.IsNullOrEmpty(editProduct.ProductImg))
+            {
+                Console.WriteLine("No image");
+            }
+
+            var response = await ProductService.EditAsync(editProduct.ProductId, editProduct);
 
             if (response.StatusCode != 200)
             {
-                throw new Exception(response.Message);
+                ToastService.ShowToast(response.Message, ToastLevel.Error);
+                return;
             }
             
+            ToastService.ShowToast(response.Message);
+            
             await editModal.Hide();
-            await LoadData(currentPage); 
+            currentPage = 1;
+            await LoadData(currentPage);
+        }
+        catch (Exception e)
+        {
+            throw new Exception(e.Message);
+        }
+    }
+    
+    @* DELETE *@
+    private void ShowDeleteConfirmation(ProductDetailResponseDTO product)
+    {
+        deleteProduct = product;
+        deleteConfirmModal.Show();
+    }
+    private async Task handleDelete(ProductDetailResponseDTO product)
+    {
+        try
+        {
+            Console.WriteLine($"Deleting product with ID: {product.ProductId}");
+
+            var response = await ProductService.DeleteAsync<ProductDTO>(product.ProductId);
+            
+            if (response.StatusCode != 200)
+            {
+                ToastService.ShowToast(response.Message);
+                return;
+            }
+            
+            ToastService.ShowToast(response.Message);
+            
+            await deleteConfirmModal.Hide();
+            
+            currentPage = 1;
+            await LoadData(currentPage);
         }
         catch (Exception e)
         {
